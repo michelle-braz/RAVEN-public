@@ -1,0 +1,4 @@
+{"timestamp":"2030-01-15T10:00:00Z","level":"error","service":"catalog-api","environment":"synthetic-staging","message":"HTTP 503 returned after configuration change"}
+{"timestamp":"2030-01-15T10:00:12Z","level":"error","service":"catalog-api","environment":"synthetic-staging","message":"dependency connection refused; request could not complete"}
+{"timestamp":"2030-01-15T10:00:25Z","level":"warning","service":"catalog-api","environment":"synthetic-staging","message":"health check failed three consecutive times"}
+

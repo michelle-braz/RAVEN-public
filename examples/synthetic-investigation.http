@@ -1,0 +1,39 @@
+@baseUrl = http://127.0.0.1:8000
+@apiKey = choose-a-local-development-key
+
+### 1. Confirm service health
+GET {{baseUrl}}/health
+
+### 2. Analyze a fully synthetic incident signal
+POST {{baseUrl}}/v1/analyze
+Content-Type: application/json
+X-API-Key: {{apiKey}}
+
+{
+  "message": "Checkout API returned HTTP 503 after a configuration change in the synthetic staging environment",
+  "source": "application"
+}
+
+### 3. Record a synthetic, human-approved resolution
+# Replace incident_id and request_id with values returned by step 2.
+POST {{baseUrl}}/beta/validate-resolution
+Content-Type: application/json
+X-API-Key: {{apiKey}}
+
+{
+  "incident_id": "replace-with-returned-incident-id",
+  "request_id": "replace-with-returned-request-id",
+  "decision_taken": "INVESTIGATE",
+  "action_taken": "Reviewed the synthetic service configuration",
+  "confidence": 4,
+  "replaced_manual_process": false,
+  "time_saved_minutes": 0,
+  "hypothesis_correct": true,
+  "resolution_text": "Restored the previous synthetic configuration and confirmed recovery",
+  "memory_write_approved": true,
+  "event_type": "service_unavailable",
+  "source": "application",
+  "message_normalized": "checkout api returned http error after configuration change",
+  "tokens": ["checkout", "api", "error", "configuration", "change"],
+  "validated_by": "synthetic-analyst"
+}
