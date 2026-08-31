@@ -37,6 +37,8 @@ flowchart LR
 
 The API layer handles HTTP validation, authentication, and response models. The Sentinel package contains normalization, scoring, recurrence detection, and action dispatch. Approved resolution records are stored locally as JSONL files. See [docs/architecture.md](docs/architecture.md).
 
+RAVEN is also the reading and correlation capability behind the FOXHUMAN operational workspace. That workspace layer is described in [docs/foxhuman-workspace.md](docs/foxhuman-workspace.md) (Portuguese: [docs/foxhuman-workspace.pt.md](docs/foxhuman-workspace.pt.md)); its implementation is not part of this public edition.
+
 ## Getting started
 
 Requirements:
