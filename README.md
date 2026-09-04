@@ -327,7 +327,7 @@ Technology is a tool in that process — not the starting point.
 
 ## 🦊 FOXHUMAN
 
-RAVEN is part of **FOXHUMAN**, an independent project focused on reducing operational complexity and improving the path from information to decision.
+RAVEN is part of FOXHUMAN, an independent project focused on understanding operational problems, reducing complexity, and improving the path from information to decision.
 
 **Complexity behind. Simplicity in front.**
 
