@@ -108,6 +108,16 @@ RAVEN is not presented as:
 
 ---
 
+## 🎯 Cyber Missions
+
+RAVEN also powers **Cyber Missions**: one practical cybersecurity ticket per day, solved with RAVEN's investigation logic — evidence → hypothesis → next step.
+
+Open `http://127.0.0.1:8000/missions/` after starting the API (no key required), or deploy `src/raven/missions/web/` as a static site.
+
+See [`docs/cyber-missions.md`](docs/cyber-missions.md).
+
+---
+
 ## 🛠️ Technical implementation
 
 RAVEN is built with:
@@ -267,6 +277,7 @@ Additional synthetic log samples are available in:
 ```text
 src/raven/api/        FastAPI application, authentication, and HTTP routes
 src/raven/sentinel/   Normalization, scoring, recurrence, and action pipeline
+src/raven/missions/   Cyber Missions: daily investigation practice (static web app + content)
 tests/                Automated tests
 docs/                 Architecture and API notes
 examples/             Synthetic investigation examples

@@ -19,6 +19,7 @@ from raven.api.auth import configured_key_tier, require_api_key
 from raven.api.beta_keys import is_valid_beta_key, register_with_auth
 from raven.api.beta.router import router as beta_router
 from raven.api.v1.router import router as v1_router
+from raven.missions import MISSIONS_WEB_DIR
 from raven.sentinel.core.engine import evaluate as sentinel_evaluate
 from raven.sentinel.pipeline.action_layer.notifier import ActionDispatcher, LogChannel
 from raven.sentinel.pipeline.app import IngestionPipeline, SignalWindow
@@ -77,6 +78,9 @@ app = FastAPI(
 app.include_router(v1_router)
 app.include_router(beta_router)
 app.mount("/static", StaticFiles(directory=Path(__file__).parent / "static"), name="static")
+# Cyber Missions: study front-end built on RAVEN's investigation structure
+# (evidence → hypothesis → next step). Static and public; no API key needed.
+app.mount("/missions", StaticFiles(directory=MISSIONS_WEB_DIR, html=True), name="missions")
 
 # ── Closed-beta access gate ───────────────────────────────────────────────────
 # Registered BEFORE CORSMiddleware so CORS is the outermost layer — error
@@ -85,7 +89,7 @@ app.mount("/static", StaticFiles(directory=Path(__file__).parent / "static"), na
 _BETA_PUBLIC_PATHS: frozenset[str] = frozenset({
     "/", "/openapi.json", "/health", "/status", "/favicon.ico",
 })
-_BETA_PUBLIC_PREFIXES: tuple[str, ...] = ("/docs", "/redoc", "/static")
+_BETA_PUBLIC_PREFIXES: tuple[str, ...] = ("/docs", "/redoc", "/static", "/missions")
 _BETA_MASTER: str | None = os.getenv("RAVEN_API_KEY")
 
 
@@ -144,6 +148,13 @@ async def security_headers(request: Request, call_next):
             "base-uri 'none'; form-action 'self'; frame-ancestors 'none'"
         )
         response.headers["Cache-Control"] = "no-store, max-age=0"
+    elif request.url.path.startswith("/missions"):
+        response.headers["Content-Security-Policy"] = (
+            "default-src 'self'; script-src 'self'; style-src 'self'; "
+            "img-src 'self' data:; connect-src 'self'; object-src 'none'; "
+            "base-uri 'none'; form-action 'none'; frame-ancestors 'none'"
+        )
+        response.headers["Cache-Control"] = "no-cache"
     return response
 
 # ── Exception handlers — consistent {"error": ..., "code": ...} envelope ─────
