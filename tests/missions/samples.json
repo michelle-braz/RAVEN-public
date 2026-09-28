@@ -1,0 +1,35 @@
+{
+  "redes-01": {
+    "good": [
+      "O notebook do financeiro, que tem um IP privado de dentro da rede, se conectou a um servidor com IP público na internet. Provavelmente é só um acesso normal a um site.",
+      "A origem 192.168.1.15 é um endereço interno da empresa e o destino 142.250.79.46 é externo. Então um computador de dentro acessou algo fora da rede.",
+      "Quem começou foi o computador local (rede interna) indo para a internet, um ip publico."
+    ],
+    "weak": [
+      "Foi uma comunicação usando TCP na porta 443 às 09:14.",
+      "O notebook do financeiro falou com o servidor 142.250.79.46, acho que é algo do Google."
+    ]
+  },
+  "redes-02": {
+    "good": [
+      "A porta 443 é usada pelo HTTPS, então o notebook provavelmente estava navegando em um site com conexão criptografada. Recebeu muito mais do que enviou, parece download de página.",
+      "Porta de destino 443 indica o serviço: HTTPS. A porta 51544 é só a porta temporária do cliente.",
+      "Parece navegação web segura (TLS) porque o destino usa a porta padrão 443."
+    ],
+    "weak": [
+      "O notebook enviou dados para outro computador durante dois minutos.",
+      "A porta 51544 indica o serviço que foi usado pelo notebook para mandar arquivos."
+    ]
+  },
+  "redes-03": {
+    "good": [
+      "Na requisição A, que é HTTP na porta 80, a senha da Ana aparece em texto claro e qualquer pessoa na rede poderia ler. Na B é HTTPS e o conteúdo está criptografado. O portal não deveria aceitar login por HTTP e a senha deveria ser trocada.",
+      "O suspeito é que a senha está visível na primeira captura, sem criptografia. Na segunda está cifrada com TLS.",
+      "A senha ficou exposta no HTTP. No HTTPS os dados vão protegidos, embaralhados."
+    ],
+    "weak": [
+      "As duas requisições são logins no portal do RH, uma na porta 80 e outra na 443.",
+      "A requisição B parece estranha porque tem números esquisitos, pode ser um vírus."
+    ]
+  }
+}

@@ -1,0 +1,177 @@
+{
+  "version": 1,
+  "modules": [
+    {"id": "redes", "name": "Redes", "dates": "29/09 a 04/10", "goal": "quem falou com quem → por onde → usando o quê"},
+    {"id": "sistemas", "name": "Windows e Linux", "dates": "05/10 a 10/10", "goal": "quem sou → onde estou → o que existe → o que está rodando"},
+    {"id": "seguranca", "name": "Segurança e Triagem", "dates": "11/10 a 16/10", "goal": "evidência → hipótese → próximo passo"},
+    {"id": "logs", "name": "Logs e SIEM", "dates": "17/10 a 23/10", "goal": "quem → fez o quê → quando → de onde → resultado"},
+    {"id": "wireshark", "name": "Wireshark", "dates": "24/10 a 27/10", "goal": "origem → destino → protocolo → comportamento"},
+    {"id": "portfolio", "name": "Portfólio e Entrevista", "dates": "28/10 a 31/10", "goal": "transformar investigações em prova do que eu sei fazer"}
+  ],
+  "missions": [
+    {
+      "id": "redes-01",
+      "ticket": "#001",
+      "module": "redes",
+      "date": "2026-09-29",
+      "title": "Comunicação desconhecida",
+      "difficulty": "Básica",
+      "skill": "Distinguir IP privado de IP público e ler a direção de uma comunicação",
+      "situation": "O monitoramento registrou uma conexão às 09:14 envolvendo um notebook do setor financeiro. Ninguém abriu chamado e ninguém sabe dizer o que foi. Antes de alarmar alguém, você precisa entender quem falou com quem.",
+      "evidence": [
+        {"label": "origem", "value": "192.168.1.15 (NOTE-FIN-03)"},
+        {"label": "destino", "value": "142.250.79.46"},
+        {"label": "porta de destino", "value": "443"},
+        {"label": "protocolo", "value": "TCP"},
+        {"label": "horário", "value": "09:14"}
+      ],
+      "question": "Descubra o que provavelmente está acontecendo: quem falou com quem, e de onde para onde foi essa comunicação?",
+      "qa": ["Se fosse o contrário — um IP da internet abrindo conexão direto para dentro do notebook — o comportamento esperado seria o mesmo?"],
+      "hints": [
+        "Olhe o começo de cada endereço IP. Os dois parecem estar no mesmo \"lugar\"?",
+        "Existem faixas de IP reservadas só para redes internas (casa, escritório): 10.x.x.x, 172.16.x.x a 172.31.x.x e 192.168.x.x. Elas não existem na internet pública.",
+        "192.168.1.15 está numa dessas faixas reservadas. 142.250.79.46 não está — é um endereço que existe na internet. Agora diga quem iniciou a conversa e com quem."
+      ],
+      "rubric": [
+        {"id": "origem-interna", "tag": "ip-privado", "required": true, "weight": 2,
+         "patterns": ["privad", "intern", "\\blocal\\b", "rede local", "\\blan\\b", "dentro (da|de uma|do) (rede|empresa|escritorio)", "da empresa", "do escritorio", "(rede|ip) (da|de) casa"],
+         "praise": "Você reconheceu que a origem (192.168.1.15) é um endereço privado — um dispositivo de dentro da rede do escritório.",
+         "missFeedback": "Você não classificou a origem. Que tipo de endereço é 192.168.1.15 — de dentro da rede ou da internet?"},
+        {"id": "destino-externo", "tag": "ip-publico", "required": true, "weight": 2,
+         "patterns": ["public", "extern", "internet", "fora (da|de) (rede|empresa)", "\\bweb\\b", "servidor (de|da|do|na) (internet|fora|google)", "google"],
+         "praise": "Você percebeu que o destino (142.250.79.46) é um endereço público, na internet.",
+         "missFeedback": "Falta dizer onde está o destino. 142.250.79.46 está numa faixa privada ou é um endereço da internet?"},
+        {"id": "direcao", "tag": "direcao", "weight": 1,
+         "patterns": ["saind", "saiu", "iniciou", "enviou", "conectou", "acess", "(de|do|da) .{1,40} (para|pra|ate) ", "origem .{0,40}destino", "pediu", "requisi"],
+         "praise": "Você descreveu a direção: foi o notebook que iniciou a conversa em direção à internet.",
+         "missFeedback": "Diga também a direção: quem iniciou a conversa? A origem é sempre quem começou a conexão."},
+        {"id": "nao-e-problema-por-si", "tag": "contexto", "weight": 1,
+         "patterns": ["normal", "comum", "navega", "\\bsite\\b", "nao (necessariamente|significa|indica|e) (um )?(problema|ataque|suspeit)", "legitim", "nada de estranho", "https"],
+         "praise": "Você considerou que isso pode ser um uso normal (como acessar um site) — sem pular para conclusões.",
+         "missFeedback": "Pense no contexto: um computador interno falando com um endereço da internet é raro ou é o que acontece em qualquer acesso a site?"}
+      ],
+      "misconceptions": [
+        {"patterns": ["(192\\.168\\S*|origem) (e|eh) (um )?(ip |endereco )?public"],
+         "feedback": "192.168.x.x nunca é endereço público: é faixa reservada para redes internas. Ela não é roteada na internet."},
+        {"patterns": ["(142\\.250\\S*|destino) (e|eh) (um )?(ip |endereco )?(privad|intern|local)"],
+         "feedback": "142.250.x.x não está em nenhuma das faixas privadas (10.x, 172.16–31.x, 192.168.x). É um endereço público."}
+      ],
+      "factsKnown": "um dispositivo interno (192.168.1.15) abriu uma conexão TCP com um endereço público (142.250.79.46) às 09:14",
+      "keyEvidence": "origem 192.168.1.15 (faixa privada) → destino 142.250.79.46 (endereço público)",
+      "meaning": "IP funciona como endereço: diz quem é quem. Como a origem é privada e o destino é público, um computador de dentro do escritório iniciou uma conversa com um servidor na internet. Isso, sozinho, é o que acontece toda vez que alguém abre um site.",
+      "remember": "IP diz onde: privado = dentro da rede; público = na internet. A origem é quem começou a conversa.",
+      "nextStep": "Olhar a porta e o protocolo para descobrir qual serviço foi usado nessa conexão.",
+      "conclusion": "O notebook NOTE-FIN-03 (IP privado 192.168.1.15, dentro da rede) iniciou uma conexão com um servidor na internet (IP público 142.250.79.46). Sem outras evidências, isso é consistente com uso normal — não há base para tratar como incidente."
+    },
+    {
+      "id": "redes-02",
+      "ticket": "#002",
+      "module": "redes",
+      "date": "2026-09-30",
+      "title": "O que passa pela porta 443?",
+      "difficulty": "Básica",
+      "skill": "Usar a porta para identificar o serviço de uma conexão",
+      "situation": "O mesmo notebook do financeiro voltou a aparecer no relatório. O gestor quer uma resposta simples: que tipo de coisa o notebook estava fazendo nessa conexão? Você só tem os dados de rede.",
+      "evidence": [
+        {"label": "origem", "value": "192.168.1.15 : 51544"},
+        {"label": "destino", "value": "142.250.79.46 : 443"},
+        {"label": "protocolo", "value": "TCP"},
+        {"label": "duração", "value": "2 min 10 s"},
+        {"label": "dados enviados / recebidos", "value": "3,1 KB enviados · 480 KB recebidos"}
+      ],
+      "question": "Você recebeu uma comunicação usando a porta 443. O que isso pode significar? Que serviço o notebook provavelmente estava usando?",
+      "qa": ["A porta de origem (51544) é a mesma toda vez? O que aconteceria se você buscasse o incidente só por ela?"],
+      "hints": [
+        "Observe a porta de destino da conexão, não a de origem.",
+        "Algumas portas são associadas por convenção a serviços conhecidos: 80 = HTTP, 53 = DNS, 22 = SSH… A porta de destino costuma indicar o serviço do servidor.",
+        "A porta 443 normalmente é usada por HTTPS. Compare também quanto foi enviado e quanto foi recebido."
+      ],
+      "rubric": [
+        {"id": "https", "tag": "porta-443", "required": true, "weight": 3,
+         "patterns": ["https", "\\btls\\b", "\\bssl\\b", "web segur", "site segur", "navega\\w* segur", "criptograf\\w*.{0,30}(web|site|navega)"],
+         "praise": "Você associou a porta 443 ao HTTPS — tráfego web criptografado.",
+         "missFeedback": "A porta de destino é a peça central. Qual serviço costuma usar a porta 443?"},
+        {"id": "porta-servico", "tag": "porta-servico", "weight": 2,
+         "patterns": ["servico", "aplicac", "porta (indica|identifica|mostra|revela|diz|e associada|serve)", "associad", "convenc", "padrao"],
+         "praise": "Você usou a ideia certa: a porta de destino ajuda a identificar o serviço usado.",
+         "missFeedback": "Explique o raciocínio: por que olhar a porta ajuda? O que uma porta indica sobre a conexão?"},
+        {"id": "navegacao", "tag": "comportamento", "weight": 1,
+         "patterns": ["navega", "\\bsite", "pagina", "baix", "download", "recebeu mais", "mais (dados )?recebid", "480"],
+         "praise": "Você leu o comportamento: recebeu muito mais do que enviou — padrão de quem baixa uma página ou arquivo.",
+         "missFeedback": "Compare enviados × recebidos (3,1 KB × 480 KB). O que esse desequilíbrio sugere sobre a atividade?"},
+        {"id": "origem-efemera", "tag": "porta-origem", "weight": 1,
+         "patterns": ["51544.{0,60}(aleator|temporar|efemer|qualquer|cliente|sorte|muda)", "porta (de )?origem.{0,60}(aleator|temporar|efemer|nao importa|cliente|muda)"],
+         "praise": "Você notou que a porta de origem (51544) é temporária, escolhida pelo próprio computador.",
+         "missFeedback": "Bônus: a porta de origem 51544 tem significado de serviço, ou é só um número temporário escolhido pelo notebook?"}
+      ],
+      "misconceptions": [
+        {"patterns": ["(443|https).{0,40}(entao|logo|portanto)?.{0,20}(nao (tem|ha) (nenhum )?(problema|risco)|e seguro|totalmente segur|sempre segur)"],
+         "feedback": "HTTPS protege o conteúdo no caminho, mas não diz se o destino é confiável. Um site malicioso também pode usar 443."},
+        {"patterns": ["51544 (e|indica|mostra) (o )?(servico|https|http)"],
+         "feedback": "A porta de origem (51544) é temporária. Quem indica o serviço é a porta de destino (443)."}
+      ],
+      "factsKnown": "o notebook abriu uma conexão TCP para a porta 443 de um servidor público, enviou 3,1 KB e recebeu 480 KB",
+      "keyEvidence": "destino 142.250.79.46 : 443 · 3,1 KB enviados × 480 KB recebidos",
+      "meaning": "A porta é como o número da sala dentro de um prédio: o IP leva ao prédio, a porta leva ao serviço. A 443 é a porta padrão do HTTPS, então o notebook provavelmente estava acessando um site com conexão criptografada — e recebeu bem mais do que enviou, como quem carrega uma página.",
+      "remember": "IP diz onde; porta ajuda a identificar qual serviço está sendo usado.",
+      "nextStep": "Confirmar qual site era (DNS ou log do proxy) em vez de supor só pela porta.",
+      "conclusion": "Conexão do notebook para a porta 443 de um servidor público: comportamento consistente com navegação HTTPS (poucos dados enviados, muitos recebidos). A porta sugere o serviço, mas não prova qual site foi acessado."
+    },
+    {
+      "id": "redes-03",
+      "ticket": "#003",
+      "module": "redes",
+      "date": "2026-10-01",
+      "title": "Senha em texto aberto",
+      "difficulty": "Básica",
+      "skill": "Diferenciar HTTP de HTTPS e reconhecer dados expostos na rede",
+      "situation": "Durante um teste autorizado no laboratório, o time capturou duas tentativas de login no portal interno de RH, feitas pela mesma colaboradora com minutos de diferença. Uma captura mostra muito mais coisa do que a outra.",
+      "evidence": [
+        {"label": "requisição A (porta 80)", "value": "POST http://portal-rh.lab.local/login\nContent-Type: application/x-www-form-urlencoded\n\nusuario=ana.souza&senha=Verao2026!"},
+        {"label": "requisição B (porta 443)", "value": "POST https://portal-rh.lab.local/login\n\n[conteúdo cifrado — TLS 1.3]\n17 03 03 00 5a 8f 2c e1 9b ..."},
+        {"label": "observação", "value": "o portal aceitou o login nas duas requisições"}
+      ],
+      "question": "Qual informação parece suspeita? Por que as duas requisições parecem tão diferentes para quem está observando a rede?",
+      "qa": ["Isso deveria ser permitido? Qual é o comportamento esperado de um portal de login quando alguém acessa por http://?"],
+      "hints": [
+        "Compare o que dá para ler na requisição A com o que dá para ler na B.",
+        "HTTP envia o conteúdo como texto que qualquer um no caminho consegue ler. HTTPS é HTTP dentro de um túnel criptografado (TLS).",
+        "Na requisição A a senha aparece legível. Pense: quem mais poderia ver isso na rede, e o que o portal deveria ter feito?"
+      ],
+      "rubric": [
+        {"id": "senha-exposta", "tag": "dado-exposto", "required": true, "weight": 3,
+         "patterns": ["(senha|credencia|login|usuario).{0,60}(expost|visive|legive|aparec|aberta|clara|claro|vazad|dá pra ler|da pra ler|qualquer)", "(expost|visive|legive|aberta|clara|claro).{0,60}(senha|credencia)", "texto (claro|puro|aberto|plano)", "sem criptograf", "nao (e |esta )?(criptograf|cifrad)"],
+         "praise": "Você identificou o ponto crítico: na requisição A a senha trafegou legível, em texto aberto.",
+         "missFeedback": "Olhe de novo a requisição A. O que dá para ler ali que não deveria estar visível?"},
+        {"id": "https-cifra", "tag": "https", "required": true, "weight": 2,
+         "patterns": ["criptograf", "cifrad", "\\btls\\b", "\\bssl\\b", "protegid", "embaralhad", "codificad"],
+         "praise": "Você explicou a diferença: no HTTPS o conteúdo vai criptografado (TLS) e não dá para ler no caminho.",
+         "missFeedback": "Explique por que a requisição B não mostra a senha. O que o HTTPS faz com o conteúdo?"},
+        {"id": "http-vs-https", "tag": "http", "weight": 1,
+         "patterns": ["\\bhttp\\b.{0,80}\\bhttps\\b", "\\bhttps\\b.{0,80}\\bhttp\\b", "porta 80", "\\b80\\b.{0,40}\\b443\\b"],
+         "praise": "Você ligou cada requisição ao protocolo certo: A = HTTP (porta 80), B = HTTPS (porta 443).",
+         "missFeedback": "Nomeie os protocolos: qual requisição é HTTP e qual é HTTPS? A porta ajuda."},
+        {"id": "portal-aceita-http", "tag": "qa-validacao", "weight": 1,
+         "patterns": ["(nao )?deveria (aceitar|permitir)", "redireciona", "(bloquear|forcar|obrigar|exigir).{0,30}https", "aceit\\w*.{0,30}http\\b", "falha (do|no) (portal|sistema)", "configura"],
+         "praise": "Mentalidade de QA: você questionou por que o portal aceitou login por HTTP — o esperado seria forçar HTTPS.",
+         "missFeedback": "Pense como QA: o portal aceitou login por http://. Isso deveria ser permitido? O que seria o esperado?"},
+        {"id": "trocar-senha", "tag": "proximo-passo", "weight": 1,
+         "patterns": ["trocar (a )?senha", "resetar", "redefinir", "mudar (a )?senha", "alterar (a )?senha", "nova senha"],
+         "praise": "Você pensou no próximo passo: a senha exposta deve ser trocada.",
+         "missFeedback": "E depois? Se a senha pode ter sido lida, o que você recomendaria para a conta da Ana?"}
+      ],
+      "misconceptions": [
+        {"patterns": ["https.{0,40}(esconde|oculta|protege).{0,20}(o )?(ip|destino|endereco|site)"],
+         "feedback": "HTTPS cifra o conteúdo, mas IP e porta de destino continuam visíveis para quem observa a rede."},
+        {"patterns": ["(a )?ana.{0,30}(e|foi) (a )?(atacante|culpada|responsavel)"],
+         "feedback": "A Ana é a usuária; nada indica que ela fez algo errado. O problema está em como o portal aceitou a senha."}
+      ],
+      "factsKnown": "o portal aceitou login por HTTP (porta 80) e, nessa requisição, a senha aparece legível na captura",
+      "keyEvidence": "requisição A: http:// porta 80 · corpo \"senha=Verao2026!\" legível",
+      "meaning": "HTTP manda os dados como um cartão-postal: qualquer um no caminho lê. HTTPS coloca o mesmo conteúdo num envelope lacrado (criptografia TLS). Por isso a senha aparece na requisição A e não na B. O problema não é a usuária: é o portal aceitar login sem HTTPS.",
+      "remember": "HTTP é cartão-postal, HTTPS é envelope lacrado: mesmo conteúdo, mas só um protege a senha no caminho.",
+      "nextStep": "Verificar se o portal redireciona http→https (e bloqueia login em HTTP) e recomendar a troca da senha exposta.",
+      "conclusion": "A requisição A usou HTTP (porta 80) e expôs usuário e senha em texto aberto; a B usou HTTPS (porta 443) e o conteúdo ficou cifrado. O portal não deveria aceitar login por HTTP: a correção é forçar HTTPS, e a senha exposta deve ser trocada."
+    }
+  ]
+}
