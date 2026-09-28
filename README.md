@@ -160,6 +160,8 @@ See:
 - [`docs/architecture.md`](docs/architecture.md)
 - [`SECURITY.md`](SECURITY.md)
 
+RAVEN is also the reading and correlation capability behind the FOXHUMAN operational workspace. That workspace layer is described in [`docs/foxhuman-workspace.md`](docs/foxhuman-workspace.md) (Portuguese: [`docs/foxhuman-workspace.pt.md`](docs/foxhuman-workspace.pt.md)); its implementation is not part of this public edition.
+
 ---
 
 ## 🚀 Getting started
@@ -341,6 +343,12 @@ Technology is a tool in that process — not the starting point.
 RAVEN is part of FOXHUMAN, an independent project focused on understanding operational problems, reducing complexity, and improving the path from information to decision.
 
 **Complexity behind. Simplicity in front.**
+
+---
+
+## ⚖️ Third-party notice
+
+This independent project is not affiliated with, endorsed by, or an official project of any third-party observability provider.
 
 ---
 
