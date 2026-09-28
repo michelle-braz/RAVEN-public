@@ -1,0 +1,335 @@
+{
+  "redes-01": {
+    "good": [
+      "O notebook do financeiro, que tem um IP privado de dentro da rede, se conectou a um servidor com IP público na internet. Provavelmente é só um acesso normal a um site.",
+      "A origem 192.168.1.15 é um endereço interno da empresa e o destino 142.250.79.46 é externo. Então um computador de dentro acessou algo fora da rede.",
+      "Quem começou foi o computador local (rede interna) indo para a internet, um ip publico."
+    ],
+    "weak": [
+      "Foi uma comunicação usando TCP na porta 443 às 09:14.",
+      "O notebook do financeiro falou com o servidor 142.250.79.46, acho que é algo do Google."
+    ]
+  },
+  "redes-02": {
+    "good": [
+      "A porta 443 é usada pelo HTTPS, então o notebook provavelmente estava navegando em um site com conexão criptografada. Recebeu muito mais do que enviou, parece download de página.",
+      "Porta de destino 443 indica o serviço: HTTPS. A porta 51544 é só a porta temporária do cliente.",
+      "Parece navegação web segura (TLS) porque o destino usa a porta padrão 443."
+    ],
+    "weak": [
+      "O notebook enviou dados para outro computador durante dois minutos.",
+      "A porta 51544 indica o serviço que foi usado pelo notebook para mandar arquivos."
+    ]
+  },
+  "redes-03": {
+    "good": [
+      "Na requisição A, que é HTTP na porta 80, a senha da Ana aparece em texto claro e qualquer pessoa na rede poderia ler. Na B é HTTPS e o conteúdo está criptografado. O portal não deveria aceitar login por HTTP e a senha deveria ser trocada.",
+      "O suspeito é que a senha está visível na primeira captura, sem criptografia. Na segunda está cifrada com TLS.",
+      "A senha ficou exposta no HTTP. No HTTPS os dados vão protegidos, embaralhados."
+    ],
+    "weak": [
+      "As duas requisições são logins no portal do RH, uma na porta 80 e outra na 443.",
+      "A requisição B parece estranha porque tem números esquisitos, pode ser um vírus."
+    ]
+  },
+  "redes-04": {
+    "good": [
+      "O DNS traduz o nome do site para o IP. O Paulo digitou o nome errado (locall com dois L), o DNS respondeu NXDOMAIN, então ele não recebeu IP e não conseguiu conectar.",
+      "A consulta do Paulo está com o nome incorreto e o DNS disse que não existe; sem o endereço IP do portal o computador não faz a conexão."
+    ],
+    "weak": [
+      "O computador do Paulo está com problema de rede e precisa ser reiniciado.",
+      "A consulta usou a porta 53 e UDP no servidor 192.168.1.1."
+    ]
+  },
+  "redes-05": {
+    "good": [
+      "O download usa TCP, que faz handshake e reenvia os pacotes perdidos, por isso chega inteiro. O vídeo usa UDP, que não confirma nem reenvia; os pacotes perdidos ficam perdidos e o vídeo pula, mas é mais rápido.",
+      "TCP é confiável porque tem retransmissão. UDP é sem conexão e não reenvia, então perde pacotes."
+    ],
+    "weak": [
+      "O vídeo pula porque a CPU do computador está sobrecarregada.",
+      "O fluxo A usa TCP na porta 443 e o fluxo C usa a porta 5004."
+    ]
+  },
+  "redes-06": {
+    "good": [
+      "De madrugada, sem ninguém logado, o notebook consultou o domínio estranho sync-cdn-update.xyz, conectou em 203.0.113.77 na porta 8080 e fez um upload de 48 MB por HTTP, recebendo quase nada. Minha hipótese é uma possível exfiltração de dados por algum programa automático. Eu verificaria qual processo fez a conexão e isolaria o notebook.",
+      "O notebook enviou muitos dados (48 MB) às 02:13 com a tela bloqueada para um servidor externo. Pode ser vazamento ou backup mal configurado; precisa investigar o processo."
+    ],
+    "weak": [
+      "O notebook fez uma conexão TCP com um servidor externo e depois encerrou.",
+      "Houve uma sincronização NTP às 02:00 e depois uma consulta DNS."
+    ]
+  },
+  "sistemas-01": {
+    "good": [
+      "O usuário logado é o deploy (whoami). Ele estava na pasta /home/deploy/app, onde tem config, app.py e um arquivo oculto .env. Depois do cd .. ele subiu para /home/deploy.",
+      "Quem está logado é deploy e o pwd mostrou /home/deploy/app."
+    ],
+    "weak": [
+      "O terminal rodou vários comandos Linux e listou arquivos.",
+      "O usuário é root e está na pasta config."
+    ]
+  },
+  "sistemas-02": {
+    "good": [
+      "O suspeito é o arquivo app.conf.bak: o backup tem a senha do banco (db_password) em texto aberto e qualquer usuário pode ler. Eu apagaria o backup e trocaria a senha.",
+      "Com o cat dá pra ver que a cópia de backup guarda uma senha do banco que não está no arquivo principal."
+    ],
+    "weak": [
+      "Os dois arquivos apontam para o banco 10.20.0.12.",
+      "O app.conf está com debug=false e o log fica em /var/log/app."
+    ]
+  },
+  "sistemas-03": {
+    "good": [
+      "O processo 2231 kworkerd é suspeito: está usando 97,8% da CPU, roda de /tmp/.x que é uma pasta oculta e parece se conectar a um pool de mineração. Provavelmente é um minerador; eu verificaria como ele chegou lá.",
+      "O kworkerd consome quase toda a CPU e isso explica a lentidão do servidor."
+    ],
+    "weak": [
+      "O servidor está lento porque o nginx e o python estão rodando.",
+      "O processo 2231 é suspeito porque é do usuário deploy."
+    ]
+  },
+  "sistemas-04": {
+    "good": [
+      "Não. A folha_outubro.csv está com rw-rw-rw-, então qualquer usuário pode ler e alterar. E o estagiário está no grupo sudo, pode virar administrador. Eu aplicaria menor privilégio e removeria o sudo.",
+      "O arquivo csv permite que todos editem e o estagiário tem privilégio de admin pelo sudo."
+    ],
+    "weak": [
+      "Sim, o dono dos arquivos é o root e o grupo é o financeiro.",
+      "A Ana e o Carlos estão no grupo financeiro."
+    ]
+  },
+  "sistemas-05": {
+    "good": [
+      "O svch0st.exe com zero é falso, roda de C:\\Users\\Public em vez do System32 e usa 88% da CPU. O evento 7045 mostra que ele foi instalado como serviço às 03:01 e logo depois criaram a conta suporte_temp. Parece que a máquina foi comprometida.",
+      "O processo svch0st imita o svchost e virou um serviço instalado de madrugada, por isso volta sempre."
+    ],
+    "weak": [
+      "O computador está lento porque o Excel travou e o Chrome usa CPU.",
+      "O svchost usa CPU e existe uma conta nova chamada suporte_temp."
+    ]
+  },
+  "sistemas-06": {
+    "good": [
+      "A conta relatorios entrou às 03:40 de um IP externo (198.51.100.23). Tem um processo nc -e /bin/bash conectando nesse mesmo IP na porta 9001, ou seja, uma shell remota. O histórico foi apagado às 03:44 e a conta pode rodar vim como root sem senha. O cron do backup é rotina. Eu isolaria o servidor e preservaria as evidências.",
+      "Alguém logou de fora com a conta relatorios e deixou um netcat dando shell para o IP 198.51.100.23."
+    ],
+    "weak": [
+      "O servidor roda um backup a cada 10 minutos pelo cron.",
+      "A Ana usou o servidor ontem à tarde."
+    ]
+  },
+  "seguranca-01": {
+    "good": [
+      "A senha da Carla estava correta vinda do IP 203.0.113.50, então alguém descobriu a senha dela. O MFA impediu o acesso porque ela negou no celular. Precisa trocar a senha.",
+      "Alguém de fora sabe a senha, mas o segundo fator bloqueou o login."
+    ],
+    "weak": [
+      "Houve duas tentativas com senha incorreta e depois o acesso foi bloqueado.",
+      "A Carla fez login às 08:10 do escritório normalmente."
+    ]
+  },
+  "seguranca-02": {
+    "good": [
+      "Não validou. Logado como João, ao trocar o ID para 1043 consegui ver o holerite da Marina com 200 OK. É falha de autorização: estar autenticado não deveria dar acesso aos dados de outra pessoa. Deveria retornar 403 como no admin.",
+      "Mudando o número da URL eu acessei dados de outro usuário; o servidor não verifica permissão."
+    ],
+    "weak": [
+      "O João acessou o próprio holerite e o admin deu 403.",
+      "O portal funciona, todas as requisições foram respondidas."
+    ]
+  },
+  "seguranca-03": {
+    "good": [
+      "A vulnerabilidade é o Apache 2.4.49 com a falha CVE. A ameaça é o grupo criminoso que está explorando essa falha. O ataque é o GET tentando ler /etc/passwd do IP 198.51.100.9, mas recebeu 403, então não teve sucesso. Precisa atualizar o Apache.",
+      "Vulnerabilidade: versão do apache. Ameaça: o grupo criminoso. Ataque: a requisição no log, que foi bloqueada."
+    ],
+    "weak": [
+      "O servidor foi atacado e está vulnerável, precisa de atenção.",
+      "Tudo isso é uma ameaça ao servidor web-02 do marketing."
+    ]
+  },
+  "seguranca-04": {
+    "good": [
+      "A svc_backup está no Domain Admins mas só precisa ler arquivos, tem privilégio demais. E teve um logon interativo no FIN-PC07 às 15:20, fora do padrão de uma conta de backup. Se alguém estiver usando essa conta, controla o domínio. Eu verificaria quem usou e reduziria os privilégios.",
+      "Privilégio excessivo e um logon estranho numa máquina de usuário à tarde."
+    ],
+    "weak": [
+      "A conta fez logon às 02:00 nos servidores de arquivos.",
+      "A conta de backup precisa de uma senha mais forte."
+    ]
+  },
+  "seguranca-05": {
+    "good": [
+      "Eu começaria pelo alerta B, porque houve várias tentativas em contas diferentes e um login com sucesso na conta do bruno.l, então pode ter alguém dentro agora. Primeiro passo: resetar a senha do bruno e ver o que a conta fez. O A é teste e o D já foi bloqueado.",
+      "Alerta B: tem um sucesso de login depois de muitas falhas, é o de maior impacto."
+    ],
+    "weak": [
+      "Começaria pelo alerta A porque o antivírus detectou um arquivo.",
+      "Eu investigaria o alerta C do certificado porque vai expirar."
+    ]
+  },
+  "seguranca-06": {
+    "good": [
+      "Provavelmente foi phishing: o e-mail veio de um domínio parecido e o link levava a uma página falsa onde o Carlos digitou a senha. Às 10:07 a senha foi usada num login de outro país (198.51.100.40) com MFA aprovado por push, e às 10:09 criaram uma regra encaminhando e-mails de pagamento para fora. O impacto é risco de fraude. Próximo passo: encerrar sessões, trocar a senha e remover a regra.",
+      "Golpe de phishing, a credencial foi capturada e usada de fora, e o atacante criou uma regra de encaminhamento de e-mails."
+    ],
+    "weak": [
+      "O Carlos recebeu um e-mail do diretor e fez login às 09:50 no escritório.",
+      "Houve dois logins com MFA aprovado."
+    ]
+  },
+  "logs-01": {
+    "good": [
+      "A marina.c fez download do arquivo contratos_2026.zip no dia 17/10 às 08:41, a partir do IP interno 192.168.3.21, e o resultado foi sucesso (uns 50 MB).",
+      "Quem: marina. O que: baixou os contratos. Resultado: success."
+    ],
+    "weak": [
+      "O servidor web-01 registrou um evento do portal.",
+      "Alguém do IP 192.168.3.21 acessou o portal."
+    ]
+  },
+  "logs-02": {
+    "good": [
+      "É uma força bruta: o IP 203.0.113.99 tentou 180 senhas em vários usuários e todas falharam, então ninguém entrou por ali. O único Accepted foi do Leo, 192.168.1.20 com chave, que é a rotina. Eu bloquearia o IP.",
+      "Muitas tentativas de senha, mas nenhuma teve sucesso."
+    ],
+    "weak": [
+      "Invadiram o servidor pela conta deploy às 03:19.",
+      "O servidor recebeu muitos logs durante a madrugada."
+    ]
+  },
+  "logs-03": {
+    "good": [
+      "O mesmo erro se repete todo dia às 02:00: o disco do backup está cheio (quota em 100%). O impacto é que não há backup desde 15/10, se o servidor quebrar os dados se perdem. Eu liberaria espaço e rodaria o backup.",
+      "Padrão recorrente de disco cheio e o backup está falhando há cinco dias."
+    ],
+    "weak": [
+      "O portal está lento com resposta de 2.1 segundos.",
+      "O sistema registra um ERROR às 02:00."
+    ]
+  },
+  "logs-04": {
+    "good": [
+      "Começou às 10:02 com o e-mail recebido pelo Pedro. Às 10:14 ele abriu o anexo xlsm com macro, às 10:15 o Excel abriu o PowerShell que baixou o p.ps1, às 10:17 foi criada uma tarefa agendada Updater e a partir de 10:20 a máquina fala com 198.51.100.61 a cada 60 segundos.",
+      "Primeiro chegou o e-mail, depois ele abriu a planilha com macro e o powershell baixou um script."
+    ],
+    "weak": [
+      "Começou com o firewall detectando conexões para 198.51.100.61.",
+      "O Pedro tem um problema na máquina FIN-PC03."
+    ]
+  },
+  "logs-05": {
+    "good": [
+      "A consulta conta falhas de login por usuário e IP e mostra quem passou de 10. A svc_print tem mais falhas, mas é porque trocaram a senha ontem e o serviço usa a antiga. A ana esqueceu a senha. O que merece atenção é o lucas.r, com falhas vindas do IP externo 203.0.113.14, sendo que ele só trabalha presencialmente.",
+      "O mais importante é o lucas.r porque as tentativas vêm de fora da empresa."
+    ],
+    "weak": [
+      "A svc_print é a mais grave porque tem 1440 falhas.",
+      "Três usuários erraram a senha várias vezes."
+    ]
+  },
+  "logs-06": {
+    "good": [
+      "O Rafael está de férias, então quem está usando a conta provavelmente não é ele. Logaram na VPN de um país incomum, a helpdesk01 colocou a conta no Backup Operators e depois leram 3.200 arquivos do RH e copiaram para temp. Minha hipótese é conta comprometida. Eu suspenderia a conta, ligaria para o Rafael e investigaria a helpdesk01.",
+      "A conta de quem está de férias copiou a pasta do RH; eu desativaria a conta e confirmaria com o usuário."
+    ],
+    "weak": [
+      "O Rafael entrou na VPN e acessou arquivos do RH.",
+      "A impressora ficou sem papel e o Rafael ativou a resposta automática."
+    ]
+  },
+  "logs-07": {
+    "good": [
+      "Entre 08:02 e 08:05 o IP 203.0.113.200 fez 40 tentativas de login e conseguiu entrar como admin no web-01. Às 08:06 liberou upload de php, às 08:07 enviou img.php e às 08:15 executou o comando whoami por ele, então tem uma webshell funcionando. Próximo passo: isolar o servidor, remover o arquivo e trocar a senha do admin.",
+      "O IP 203.0.113.200 errou a senha várias vezes, depois teve sucesso com a conta admin e fez upload de um arquivo php."
+    ],
+    "weak": [
+      "O web-01 teve vários logins e um upload de imagem.",
+      "O WAF registrou uma requisição com 200."
+    ]
+  },
+  "wireshark-01": {
+    "good": [
+      "Primeiro o 192.168.1.15 fez uma consulta DNS e descobriu que intranet.lab.local é 10.20.0.30. Depois fez o handshake TCP (SYN, SYN-ACK, ACK) na porta 80 e mandou um GET /index.html por HTTP, recebendo 200 OK com a página.",
+      "O DNS resolveu o nome da intranet, depois o computador pediu a página com GET e recebeu 200 OK."
+    ],
+    "weak": [
+      "São 7 pacotes entre dois computadores.",
+      "O computador usou a porta 51820 para o serviço."
+    ]
+  },
+  "wireshark-02": {
+    "good": [
+      "Eu usaria o filtro B, porque login é enviado por POST para o portal e ele reduz tudo para 3 pacotes. O filtro C é a porta 443, que é HTTPS criptografado, então nunca mostraria um login por HTTP na porta 80.",
+      "Filtro B, pois pega só o POST. O C só mostra HTTPS cifrado."
+    ],
+    "weak": [
+      "Eu usaria o filtro A porque mostra tudo do portal.",
+      "O filtro C mostra 30.100 pacotes."
+    ]
+  },
+  "wireshark-03": {
+    "good": [
+      "O login foi por HTTP e a senha aparece legível na captura, sem criptografia. Depois, logado como id 12, o usuário pediu /api/usuarios/77 e recebeu os dados da Rita com salário, o que não deveria acontecer: falha de autorização.",
+      "A senha está em texto aberto e deu para ver os dados de outro usuário trocando o ID."
+    ],
+    "weak": [
+      "O usuário fez login e recebeu um cookie de sessão.",
+      "A conversa teve dois pedidos e duas respostas 200 OK."
+    ]
+  },
+  "wireshark-04": {
+    "good": [
+      "O notebook 192.168.1.15 consultou no DNS o domínio sync-cdn-update.xyz e recebeu 203.0.113.77. Abriu uma conexão TCP na porta 8080 e fez um HTTP POST de upload do arquivo fin_backup_Q3.zip, 48 MB, recebendo quase nada. Como é HTTP sem criptografia dá pra ver o nome do arquivo. Reforça a hipótese de exfiltração da #006; eu isolaria o notebook e preservaria a captura.",
+      "A origem é o notebook interno e o destino é o servidor externo 203.0.113.77; ele fez upload de 48 MB de um zip."
+    ],
+    "weak": [
+      "Há pacotes DNS, TCP e NTP na captura.",
+      "A captura tem mais de 33 mil pacotes."
+    ]
+  },
+  "portfolio-01": {
+    "good": [
+      "Eu levaria o #018 do phishing e o #029 da captura do Wireshark, porque mostram investigações completas, com evidência, hipótese e próximo passo, e são de áreas diferentes, o que faz sentido para uma vaga de analista SOC júnior.",
+      "Escolho o caso da senha em texto aberto e o da URL, pois demonstram mentalidade de QA."
+    ],
+    "weak": [
+      "Eu levaria todos os casos para mostrar tudo o que fiz.",
+      "O #018 é o melhor."
+    ]
+  },
+  "portfolio-02": {
+    "good": [
+      "Situação: um colaborador do financeiro abriu chamado dizendo que digitou a senha num link de e-mail. Evidências: domínio parecido com o real, login da conta vindo de outro país 4 minutos depois e uma regra de encaminhamento criada. Hipótese: provavelmente phishing com roubo de credencial. Investigação: montei a linha do tempo pelos logs. Conclusão: recomendei revogar sessões, resetar a senha e remover a regra. O que aprendi: separar fato de hipótese. Cenário simulado em laboratório.",
+      "Situação: chamado do financeiro. Evidências: domínio falso e regra de e-mail. Hipótese: phishing provável."
+    ],
+    "weak": [
+      "Foi um caso de phishing muito interessante que resolvi.",
+      "O Carlos clicou num link e o atacante roubou a senha dele."
+    ]
+  },
+  "portfolio-03": {
+    "good": [
+      "Situação: alerta de tráfego de madrugada. Evidências: a origem foi o notebook 192.168.1.15 e o destino 203.0.113.77, via DNS de um domínio estranho; houve upload de 48 MB por HTTP POST de um zip. Hipótese: provável exfiltração de dados. Limitações: a captura não mostra qual processo enviou nem o conteúdo real do arquivo; precisaria analisar o endpoint. Próximo passo: isolar e investigar o processo. Cenário simulado.",
+      "Origem notebook, destino externo, upload de 48 MB. Hipótese: possível vazamento. Limitação: não sei qual processo enviou."
+    ],
+    "weak": [
+      "O notebook vazou os dados do financeiro para um hacker.",
+      "Foi um caso de rede com Wireshark e DNS."
+    ]
+  },
+  "portfolio-04": {
+    "good": [
+      "Num laboratório de estudos, recebi um caso de um notebook que enviava dados de madrugada. Analisei as evidências de rede: DNS de um domínio estranho, conexão na porta 8080 e um upload de 48 MB. Minha hipótese era possível exfiltração, mas separei o que era fato do que era suposição. Montei a linha do tempo e recomendei isolar a máquina e identificar o processo. O resultado foi um relatório claro. Aprendi a não tratar hipótese como fato.",
+      "Foi um cenário simulado de phishing. A evidência era um domínio parecido e um login de outro país; minha hipótese era roubo de credencial."
+    ],
+    "weak": [
+      "Eu sou muito dedicada e gosto de segurança.",
+      "Eu fiz vários cursos de cibersegurança e aprendi muito."
+    ]
+  }
+}
