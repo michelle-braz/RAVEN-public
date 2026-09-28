@@ -26,4 +26,4 @@ pythonpath = ["src"]
 testpaths = ["tests"]
 
 [tool.setuptools.package-data]
-raven = ["api/landing.html", "api/static/*", "missions/web/*"]
+raven = ["api/landing.html", "api/static/*", "api/static/.gitkeep", "missions/web/*"]
