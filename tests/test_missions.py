@@ -76,7 +76,8 @@ def test_full_schedule_matches_master_plan():
 
 def test_committed_missions_contain_only_simulated_data():
     text = (MISSIONS_WEB_DIR / "missions.json").read_text(encoding="utf-8").lower()
-    for forbidden in ("api_key", "bearer ", "begin rsa", "password=", "@gmail.com"):
+    # Didactic fake secrets (e.g. "db_password=Lab#2026") are fine; real-looking tokens are not.
+    for forbidden in ("api_key", "bearer ", "begin rsa", "begin openssh", "ghp_", "sk-ant", "akia", "@gmail.com"):
         assert forbidden not in text
 
 

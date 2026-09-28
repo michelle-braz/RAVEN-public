@@ -33,7 +33,7 @@ function matchesAny(text, patterns) {
 // ── Fato × hipótese ───────────────────────────────────────────────────────────
 
 const CERTAINTY = [
-  "\\b(e|eh|foi|esta|estao|sao|era|temos) (sendo )?(um |uma |o |a )?(claramente |com certeza |certamente )?(ataque|atacante|invasor|invasao|hacker|criminoso|malicios\\w*|malware|virus|ransomware|golpe|golpista|phishing|comprometid\\w*|hackead\\w*|invadid\\w*|roubad\\w*|vazad\\w*|exfiltra\\w*|culpad\\w*|infectad\\w*)",
+  "\\b(e|eh|foi|esta|estao|sao|era|temos) (sendo )?(um |uma |o |a )?(claramente |com certeza |certamente )?(ataque|atacante|invasor|invasao|hacker|criminoso|malicios\\w*|malware|virus|ransomware|golpe|golpista|phishing|minerador|backdoor|trojan|webshell|botnet|comprometid\\w*|hackead\\w*|invadid\\w*|roubad\\w*|vazad\\w*|exfiltra\\w*|culpad\\w*|infectad\\w*)",
   "\\b(com certeza|certamente|sem duvida|definitivamente|obviamente|com toda certeza|100%|ja sabemos que|esta provado|prova que|confirma que)\\b",
   "\\b(o|a) (usuari\\w*|funcionari\\w*|colaborador\\w*) (roubou|vazou|atacou|invadiu|mentiu)",
 ];
