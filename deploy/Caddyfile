@@ -1,0 +1,17 @@
+# HTTPS proxy in front of the API.
+#   RAVEN_DOMAIN=raven.example.com   -> automatic certificate (Let's Encrypt)
+#   RAVEN_DOMAIN=http://localhost    -> local evaluation only, no TLS
+{$RAVEN_DOMAIN} {
+	encode zstd gzip
+	request_body {
+		max_size 512KB
+	}
+	# Caddy overwrites any client-supplied X-Forwarded-* header with the real peer address
+	# (it only trusts them if `trusted_proxies` is configured, which it is not), so the app's
+	# RAVEN_TRUSTED_PROXY_HOPS=1 sees exactly one honest hop.
+	reverse_proxy app:8000
+	log {
+		output stdout
+		format json
+	}
+}

@@ -104,7 +104,7 @@ function homeView() {
           h("div", {}, h("dt", {}, "Progresso"), h("dd", {}, `${idx} / ${total}`)),
           h("div", {}, h("dt", {}, "XP"), h("dd", {}, String(state.xp))),
         ),
-        h("div", { class: "bar", role: "progressbar", "aria-valuemin": "0", "aria-valuemax": String(total), "aria-valuenow": String(idx) },
+        h("div", { class: "bar", role: "progressbar", "aria-label": "Progresso nas missões", "aria-valuetext": `${idx} de ${total} missões`, "aria-valuemin": "0", "aria-valuemax": String(total), "aria-valuenow": String(idx) },
           progressFill(idx / total)),
         h("p", { class: "pace muted" }, pace),
       ),
@@ -484,9 +484,9 @@ async function copy(text, btn) {
 }
 
 function backupView() {
-  const out = h("textarea", { rows: "6", readonly: true, id: "backup-out" });
+  const out = h("textarea", { rows: "6", readonly: true, id: "backup-out", "aria-label": "Backup do progresso (somente leitura)" });
   out.value = JSON.stringify(state);
-  const inp = h("textarea", { rows: "4", id: "backup-in", placeholder: "Cole aqui um backup para restaurar" });
+  const inp = h("textarea", { rows: "4", id: "backup-in", "aria-label": "Backup a restaurar", placeholder: "Cole aqui um backup para restaurar" });
   const msg = h("p", { class: "muted", "aria-live": "polite" });
   mount(h("div", {},
     h("a", { class: "back", href: "#/" }, "← Início"),

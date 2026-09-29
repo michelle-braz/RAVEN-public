@@ -1,6 +1,8 @@
 from __future__ import annotations
 
-from fastapi import APIRouter
+import logging
+
+from fastapi import APIRouter, HTTPException
 
 from .models import (
     DecisionImpact,
@@ -16,7 +18,13 @@ from .store import (
     load_impacts,
 )
 
-router = APIRouter(prefix="/beta", tags=["beta"])
+router = APIRouter(prefix="/beta", tags=["feedback"])
+_log = logging.getLogger("raven.feedback")
+
+
+def _storage_unavailable(exc: OSError) -> HTTPException:
+    _log.error("decision storage failed: %s", exc.__class__.__name__)
+    return HTTPException(status_code=503, detail="Storage temporarily unavailable. Retry later.")
 
 _RECOMMENDATIONS: dict[str, str] = {
     "NO_EVIDENCE":      "Find more testers",
@@ -54,7 +62,10 @@ def _validation_status(n: int) -> str:
 )
 async def submit_decision_impact(payload: DecisionImpactRequest) -> dict[str, str]:
     impact = DecisionImpact(**payload.model_dump())
-    append_impact(impact)
+    try:
+        append_impact(impact)
+    except OSError as exc:
+        raise _storage_unavailable(exc) from exc
     return {"id": impact.id, "status": "recorded"}
 
 
@@ -137,7 +148,10 @@ async def validate_resolution(
     impact = DecisionImpact(
         **{k: v for k, v in payload.model_dump().items() if k in _IMPACT_FIELDS}
     )
-    append_impact(impact)
+    try:
+        append_impact(impact)
+    except OSError as exc:
+        raise _storage_unavailable(exc) from exc
 
     memory_record_id: str | None = None
     memory_record_created = False
@@ -158,7 +172,10 @@ async def validate_resolution(
             validated_by=payload.validated_by,
             supersedes=payload.supersedes,
         )
-        append_validated_incident(validated)
+        try:
+            append_validated_incident(validated)
+        except OSError as exc:
+            raise _storage_unavailable(exc) from exc
         memory_record_id = validated.id
         memory_record_created = True
 

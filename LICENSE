@@ -1,22 +1,33 @@
-MIT License
+RAVEN — Proprietary Software Notice
 
-Copyright (c) 2026 Michelle Braz
+Copyright (c) 2026 Michelle Braz. All rights reserved.
 
-Permission is hereby granted, free of charge, to any person obtaining a copy
-of this software and associated documentation files (the "Software"), to deal
-in the Software without restriction, including without limitation the rights
-to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-copies of the Software, and to permit persons to whom the Software is
-furnished to do so, subject to the following conditions:
+This software, its source code and its documentation ("RAVEN") are proprietary.
+No licence or right to use, copy, modify, merge, publish, distribute, sublicense,
+host, resell or create derivative works of RAVEN is granted, except under a
+separate written agreement signed by the copyright holder.
 
-The above copyright notice and this permission notice shall be included in all
-copies or substantial portions of the Software.
+Being able to see this repository, or to download a copy of it, does not grant
+any licence.
 
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-SOFTWARE.
+Third-party components
+----------------------
+RAVEN depends on third-party open-source software. Each component stays under
+its own licence, which this notice does not change. The full inventory and the
+licence texts are in docs/licensing/THIRD_PARTY.md and
+docs/licensing/THIRD_PARTY_LICENSES.txt.
 
+Earlier versions
+----------------
+Versions of this repository up to and including commit
+0f66b49b2a5b183c01e1750aab74727a5fe8ccc7 (the last commit before this notice)
+were published under the MIT License. This notice does not withdraw the MIT
+grant for copies of those earlier versions already obtained under it. It applies
+to all later versions. See docs/licensing/LICENSING.md.
+
+No warranty
+-----------
+RAVEN is provided "as is", without warranty of any kind, except as stated in a
+separate written agreement.
+
+Contact: the repository owner, https://github.com/michelle-braz

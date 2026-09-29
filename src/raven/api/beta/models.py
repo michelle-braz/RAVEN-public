@@ -16,13 +16,13 @@ def _utc_now() -> str:
 # ── Existing models (unchanged public contract) ───────────────────────────────
 
 class DecisionImpactRequest(BaseModel):
-    incident_id: str = Field(min_length=1)
-    request_id: str = Field(min_length=1)
+    incident_id: str = Field(min_length=1, max_length=128)
+    request_id: str = Field(min_length=1, max_length=128)
     decision_taken: DecisionTaken
     action_taken: str = Field(min_length=1, max_length=1024)
     confidence: int = Field(ge=1, le=5)
     replaced_manual_process: bool
-    time_saved_minutes: int = Field(ge=0)
+    time_saved_minutes: int = Field(ge=0, le=100_000)
     comments: Optional[str] = Field(default=None, max_length=4096)
     # ── Memory extension fields (optional — existing payloads unaffected) ──────
     hypothesis_correct: Optional[bool] = None
@@ -56,17 +56,17 @@ class ValidatedIncident(BaseModel):
     timestamp: str = Field(default_factory=_utc_now)
 
     # Traceability — links back to the originating Sentinel analysis
-    incident_id: str = Field(min_length=1)
-    request_id: str = Field(min_length=1)
-    signature: str = Field(min_length=1, description="Deterministic content signature from Sentinel normalizer.")
+    incident_id: str = Field(min_length=1, max_length=128)
+    request_id: str = Field(min_length=1, max_length=128)
+    signature: str = Field(min_length=1, max_length=256, description="Deterministic content signature from Sentinel normalizer.")
 
     # Incident classification
-    event_type: str = Field(min_length=1)
-    source: str = Field(min_length=1)
+    event_type: str = Field(min_length=1, max_length=128)
+    source: str = Field(min_length=1, max_length=128)
 
     # Signal content — normalized form used for similarity matching
     message_normalized: str = Field(min_length=1, max_length=8192)
-    tokens: list[str] = Field(default_factory=list, description="Normalized token set from the signal layer.")
+    tokens: list[str] = Field(default_factory=list, max_length=256, description="Normalized token set from the signal layer.")
 
     # Validated resolution
     resolution_text: str = Field(min_length=1, max_length=4096)
@@ -78,7 +78,7 @@ class ValidatedIncident(BaseModel):
     validation_timestamp: str = Field(default_factory=_utc_now)
 
     # Lineage — points to the record this supersedes, if any
-    supersedes: Optional[str] = Field(default=None, description="ID of the ValidatedIncident this record replaces.")
+    supersedes: Optional[str] = Field(default=None, max_length=128, description="ID of the ValidatedIncident this record replaces.")
 
 
 class ValidatedMatch(BaseModel):
@@ -103,13 +103,13 @@ class ValidateResolutionRequest(DecisionImpactRequest):
     """
     # Signal metadata — populated automatically in Phase 5 integration;
     # supplied manually by analysts during standalone Phase 2 validation.
-    signature: Optional[str] = Field(default=None, min_length=1, description="Sentinel content signature.")
-    event_type: Optional[str] = Field(default=None, min_length=1)
-    source: Optional[str] = Field(default=None, min_length=1)
+    signature: Optional[str] = Field(default=None, min_length=1, max_length=256, description="Sentinel content signature.")
+    event_type: Optional[str] = Field(default=None, min_length=1, max_length=128)
+    source: Optional[str] = Field(default=None, min_length=1, max_length=128)
     message_normalized: Optional[str] = Field(default=None, min_length=1, max_length=8192)
-    tokens: list[str] = Field(default_factory=list)
+    tokens: list[str] = Field(default_factory=list, max_length=256)
     validated_by: Optional[str] = Field(default=None, max_length=256)
-    supersedes: Optional[str] = Field(default=None, description="ID of the ValidatedIncident this replaces.")
+    supersedes: Optional[str] = Field(default=None, max_length=128, description="ID of the ValidatedIncident this replaces.")
 
 
 class ValidateResolutionResponse(BaseModel):

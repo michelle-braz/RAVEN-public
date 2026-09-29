@@ -10,8 +10,9 @@ from typing import Any
 from fastapi import APIRouter, Depends, HTTPException, Request
 from pydantic import BaseModel, Field, field_validator
 
-from raven.api.auth import check_ip_rate_limit, require_api_key
+from raven.api.auth import check_ip_rate_limit, client_ip, require_api_key
 from raven.api.beta.store import record_analyze_call
+from raven.api.ops import METRICS
 from raven.api.v1.enrichment import EnrichedAnalysis, enrich
 from raven.sentinel.observability import BufferFull
 from raven.sentinel.pipeline.app import IngestionPipeline
@@ -79,8 +80,7 @@ class AnalyzeResponse(BaseModel):
 def _ip_guard(request: Request) -> None:
     """Apply the in-memory request limit before scoring work begins."""
 
-    ip = request.client.host if request.client else "unknown"
-    check_ip_rate_limit(ip)
+    check_ip_rate_limit(client_ip(request))
 
 
 @router.post(
@@ -146,7 +146,13 @@ async def analyze(
         }
 
     enriched: EnrichedAnalysis = enrich(assessment, body.message, body.source)
-    record_analyze_call(assessment.incident_id, request_id)
+    METRICS.inc("analyses")
+    try:
+        record_analyze_call(assessment.incident_id, request_id)
+    except OSError as exc:
+        # Telemetry only: a full disk must not discard a finished analysis.
+        METRICS.inc("storage_failures")
+        _log.error("analysis telemetry not stored: %s", exc.__class__.__name__)
 
     _log.info(
         "endpoint=/v1/analyze ts=%s risk_score=%.4f severity=%s action=%s "
