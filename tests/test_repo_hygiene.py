@@ -30,6 +30,8 @@ SECRET = re.compile(
 def test_no_secrets_or_data_files_are_tracked():
     for path in tracked():
         rel = path.relative_to(ROOT).as_posix()
+        if path == Path(__file__).resolve():
+            continue  # holds the patterns themselves
         assert not rel.endswith(".jsonl"), rel
         assert not re.search(r"(^|/)\.env($|\.)", rel) or rel.endswith(".env.example"), rel
         if path.suffix in {".png", ".txt"} and "THIRD_PARTY" not in rel:

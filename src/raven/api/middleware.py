@@ -58,6 +58,7 @@ class BodyLimitMiddleware:
         headers = {k: v for k, v in scope["headers"]}
         length = headers.get(b"content-length")
         status = code = None
+        msg = ""
         if length is None:
             if b"transfer-encoding" in headers:
                 status, code, msg = 411, "length_required", "Content-Length is required."
