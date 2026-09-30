@@ -17,7 +17,7 @@ jobs:
     - name: Install dependencies
       run: |
         python -m pip install --upgrade pip
-        pip install pylint -r requirements.lock
+        pip install pylint pytest -r requirements.lock
     - name: Analysing the code with pylint (errors only)
       run: |
         pylint --errors-only --init-hook="import sys; sys.path.insert(0, 'src')" $(git ls-files '*.py')
