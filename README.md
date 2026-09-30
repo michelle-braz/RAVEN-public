@@ -3,33 +3,43 @@
 **Human-Centered Operational Intelligence**  
 Criada por **Michelle Braz · FOXHUMAN**
 
-A RAVEN é uma camada de apoio à decisão para transformar sinais operacionais dispersos em uma resposta mais clara e acionável.
+## Resumo rápido
 
-Em linguagem simples, ela ajuda a responder:
+A RAVEN recebe um sinal operacional, organiza o que importa e devolve uma leitura mais clara para ajudar uma pessoa a decidir o próximo passo.
 
-- **O que aconteceu?**
-- **O que importa agora?**
-- **Quais evidências sustentam isso?**
-- **Qual é a hipótese atual?**
-- **Qual deve ser o próximo passo?**
+Ela não decide no lugar do profissional.
 
-A decisão final continua sendo humana.
+## O que a pessoa vê
 
-## O que esta vitrine mostra
+- o que aconteceu;
+- o que merece atenção;
+- quais evidências foram encontradas;
+- qual é a hipótese atual;
+- quais próximos passos fazem sentido;
+- quanto daquela análise ainda precisa de validação humana.
 
-Esta página apresenta apenas **o propósito, a experiência e os resultados observáveis da RAVEN**.
+## O que existe por trás
 
-A implementação real, o código, os critérios internos, pesos, heurísticas, regras de classificação, arquitetura, controles de segurança, documentação operacional e lógica estratégica **não são publicados**.
+Sem abrir a lógica interna, o pacote é sustentado por:
 
-## Metodologia
+- **Python** — onde roda o núcleo da RAVEN;
+- **Linux** — a base do ambiente onde ela funciona;
+- **Docker** — empacota a aplicação para ela rodar de forma consistente;
+- **Cloud** — mantém a RAVEN disponível na internet;
+- **CI/CD** — testa, valida e publica mudanças de forma controlada;
+- **testes automáticos** — verificam se alterações quebraram alguma parte;
+- **controles de segurança** — limitam acesso, uso e exposição de dados;
+- **monitoramento** — confirma se a aplicação está saudável depois de subir.
 
-A RAVEN utiliza uma **metodologia autoral e proprietária da FOXHUMAN**, desenvolvida para reduzir carga cognitiva e organizar informação operacional antes da decisão.
+## Metodologia FOXHUMAN
 
-A metodologia pública pode ser resumida assim:
+A RAVEN utiliza uma **metodologia autoral e proprietária da FOXHUMAN** para reduzir esforço mental e transformar informação dispersa em uma leitura operacional mais simples.
 
-**sinal → contexto → evidência → prioridade → hipótese → próximo passo → decisão humana**
+A explicação pública fica apenas neste nível:
 
-O funcionamento interno dessa metodologia permanece reservado.
+**entrada → organização → leitura do impacto → apoio à decisão humana**
+
+Os critérios internos, pesos, heurísticas, regras, arquitetura detalhada e estratégia permanecem reservados.
 
 ## Princípios
 
@@ -38,16 +48,16 @@ O funcionamento interno dessa metodologia permanece reservado.
 - prioridade proporcional ao impacto observado;
 - decisão humana preservada;
 - privacidade e uso controlado;
-- explicação suficiente para agir, sem exposição desnecessária do mecanismo interno.
+- explicação suficiente para agir, sem expor o mecanismo interno.
 
 ## Experiência controlada
 
-Uma versão limitada da RAVEN pode ser usada para experimentar o fluxo com dados próprios:
+Uma versão limitada da RAVEN pode ser usada com dados próprios para experimentar o fluxo:
 
 **RAVEN — experiência controlada**  
 https://raven-cloud-proof-production.up.railway.app/try
 
-A superfície pública é deliberadamente limitada. Código, infraestrutura, segredos e documentação interna permanecem privados.
+A superfície pública é limitada de propósito. Código, infraestrutura, segredos, documentação interna e lógica estratégica permanecem privados.
 
 ## FOXHUMAN
 
