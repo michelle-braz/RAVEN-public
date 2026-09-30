@@ -1,10 +1,9 @@
 # FOXHUMAN Operational Workspace — the design
 
-> Translation. Primary version: [`foxhuman-workspace.pt.md`](foxhuman-workspace.pt.md).
+> Classification: Product (design only).
 >
-> This document describes the **design** of the workspace layer FOXHUMAN builds
-> on top of RAVEN. The implementation is not part of this public edition. Every
-> example here is synthetic.
+> This document describes the **design** of the workspace layer FOXHUMAN builds on top of RAVEN. The
+> implementation is not part of this repository. Every example is synthetic.
 
 ## The problem
 

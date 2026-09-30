@@ -24,26 +24,30 @@
         "type": "object"
       },
       "AnalyzeResponse": {
-        "description": "Structured incident context produced by the Sentinel pipeline.",
+        "description": "Structured incident context produced by the Sentinel pipeline.\n\nEvery field is derived from the submitted message and from the recurrence window the\nprocess holds in memory. RAVEN has no access to the customer's topology, tickets, users\nor history, and never invents them. Hypotheses and steps are heuristics for a human to\nverify, not verdicts.",
         "properties": {
           "analysis_scope": {
             "title": "Analysis Scope",
             "type": "string"
           },
           "confidence": {
+            "description": "The risk score rescaled to 0–100. Not a calibrated probability of being right.",
             "title": "Confidence",
             "type": "integer"
           },
           "context": {
             "additionalProperties": true,
+            "description": "related_alerts: repeats seen in the active window. recent_deployment: change wording in the message. affected_services: only the detected object.",
             "title": "Context",
             "type": "object"
           },
           "event_type": {
+            "description": "Keyword-based classification of the message wording.",
             "title": "Event Type",
             "type": "string"
           },
           "evidence": {
+            "description": "Observed facts: the scoring factors that fired. Never contains inference.",
             "items": {
               "type": "string"
             },
@@ -60,6 +64,7 @@
                 "type": "null"
               }
             ],
+            "description": "Weighted scoring factors behind risk_score.",
             "title": "Explain"
           },
           "feedback": {
@@ -69,15 +74,18 @@
           },
           "historical_context": {
             "additionalProperties": true,
+            "description": "occurrences_in_active_window: observed repeats (memory of this process, not a 30-day history). suggested_playbook: a generic starting point per event type, not a learned resolution.",
             "title": "Historical Context",
             "type": "object"
           },
           "hypothesis": {
+            "description": "Heuristic explanation to verify. Kept separate from evidence.",
             "title": "Hypothesis",
             "type": "string"
           },
           "impact": {
             "additionalProperties": true,
+            "description": "Severity-derived label; not a measured impact. See its 'basis' field.",
             "title": "Impact",
             "type": "object"
           },
@@ -86,6 +94,7 @@
             "type": "string"
           },
           "incident_id": {
+            "description": "Stable for the same normalized signal at the same severity while it stays in the recurrence window.",
             "title": "Incident Id",
             "type": "string"
           },
@@ -94,6 +103,7 @@
             "type": "string"
           },
           "monitored_object": {
+            "description": "Keyword-based guess of the affected component; 'unknown' if none matched.",
             "title": "Monitored Object",
             "type": "string"
           },
@@ -113,14 +123,17 @@
             "type": "array"
           },
           "request_id": {
+            "description": "Unique id of this analysis; quote it when giving feedback.",
             "title": "Request Id",
             "type": "string"
           },
           "risk_score": {
+            "description": "Deterministic score 0.0–1.0 from lexical, source, recurrence, novelty and volatility factors.",
             "title": "Risk Score",
             "type": "number"
           },
           "severity": {
+            "description": "LOW, MEDIUM, HIGH or CRITICAL band of risk_score.",
             "title": "Severity",
             "type": "string"
           },

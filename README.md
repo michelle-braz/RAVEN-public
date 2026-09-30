@@ -1,365 +1,78 @@
 # RAVEN
 
-**Operational Context Prototype for Incident Investigation**
+**Human-first incident context.** RAVEN turns a raw incident signal into structured context for an analyst:
+evidence kept apart from hypothesis, a deterministic risk score, recurrence, and suggested next steps. The
+analyst decides; RAVEN records a resolution only when a human approves it.
 
-RAVEN is a functional technical prototype designed to reduce the effort required to understand what happened before deciding what to investigate next.
+Part of FOXHUMAN: *complexity behind, simplicity in front.*
 
-It organizes scattered operational information, separates evidence from hypotheses, highlights recurring signals, and keeps the final decision with the human analyst.
+## The problem
 
-RAVEN is part of the broader **FOXHUMAN** approach to human-centered operational systems.
+During an incident, context is scattered across tools, tickets, logs and earlier incidents. Before investigating,
+someone has to work out what happened, which facts matter, which statements are assumptions, and where to look
+first. RAVEN does that first pass consistently and explainably. It is for SRE, NOC, QA, support and engineering
+teams, and for engineers who integrate that context into their own tools.
 
----
+## What it does
 
-## 🎯 Why RAVEN exists
+* Normalizes a signal and scores it deterministically (explainable factors, English and Portuguese vocabulary).
+* Groups repeats under a stable incident id (recurrence in memory of the running process).
+* Returns `evidence` (observed) separately from `hypothesis` (heuristic), plus ordered next steps.
+* Records analyst decisions and, with explicit approval, validated resolutions.
+* Includes **Cyber Missions**, a daily investigation practice app (33 missions, pt-BR), at `/missions/`.
 
-During conversations and validation with professionals across:
+It uses no machine learning, makes no outbound network calls, and reports only what it observed: no invented
+ticket counts, topology or history. The score is a conservative lexical heuristic, not a severity verdict.
+Details and per-capability status: [product overview](docs/product/overview.md).
 
-**QA • Engineering • Observability • Security • Support • SRE • NOC • Operations**
+## Architecture
 
-a recurring operational problem became clear:
+One Python process: FastAPI API layer → deterministic Sentinel pipeline → enrichment; append-only JSONL storage;
+static Missions app. Delivered as one container per customer behind an HTTPS proxy.
+[Architecture](docs/system/architecture.md).
 
-important context is often fragmented across tools, tickets, logs, alerts, and previous incidents.
+## Run it
 
-Before a technical investigation can even begin, the person often needs to:
-
-- understand what happened;
-- identify which information matters;
-- separate facts from assumptions;
-- search across multiple sources;
-- decide where to investigate first.
-
-RAVEN was created to explore a simpler operational flow for that problem.
-
-> **Understand the context first. Investigate with more direction.**
-
----
-
-## ⚙️ What RAVEN does
-
-RAVEN receives an incident signal and returns a structured investigation context.
-
-The public implementation can:
-
-- normalize individual incident signals;
-- apply deterministic, rule-based risk scoring;
-- group recurring signals under stable incident identifiers;
-- organize available evidence;
-- separate evidence from an investigation hypothesis;
-- suggest possible investigation steps;
-- keep the final decision with the human analyst;
-- record only explicitly approved resolution context.
-
-The goal is not to automate the analyst's decision.
-
-The goal is to reduce the effort required to understand the situation before that decision is made.
-
----
-
-## 🧭 Example investigation flow
-
-```text
-Incident signal
-      ↓
-Normalize information
-      ↓
-Identify recurrence and risk
-      ↓
-Organize evidence
-      ↓
-Separate evidence from hypothesis
-      ↓
-Suggest investigation steps
-      ↓
-Human review and decision
-      ↓
-Optional approved resolution memory
-```
-
-This reflects the core principle behind the project:
-
-**complexity behind the scenes, clearer context in front of the analyst.**
-
----
-
-## 🚧 Status
-
-RAVEN is under active development.
-
-The following parts are functional in the public repository:
-
-- analysis pipeline;
-- REST API;
-- structured investigation output;
-- recurrence detection;
-- deterministic scoring;
-- evidence and hypothesis separation;
-- suggested next steps;
-- human-approved resolution memory;
-- automated tests.
-
-The public repository contains only synthetic examples and no third-party operational data.
-
-RAVEN is not presented as:
-
-- a finished commercial platform;
-- a production-ready incident-management system;
-- a replacement for observability platforms;
-- an autonomous decision-making system.
-
----
-
-## 🎯 Cyber Missions
-
-RAVEN also powers **Cyber Missions**: one practical cybersecurity ticket per day, solved with RAVEN's investigation logic — evidence → hypothesis → next step.
-
-Open `http://127.0.0.1:8000/missions/` after starting the API (no key required), or deploy `src/raven/missions/web/` as a static site.
-
-See [`docs/cyber-missions.md`](docs/cyber-missions.md).
-
----
-
-## 🛠️ Technical implementation
-
-RAVEN is built with:
-
-`Python` • `FastAPI` • `REST APIs` • `JSONL` • `Pytest`
-
-The current public architecture follows this flow:
-
-```text
-FastAPI request validation
-        ↓
-Signal normalization
-        ↓
-Scoring and recurrence detection
-        ↓
-Context enrichment
-        ↓
-Evidence / hypothesis / next steps
-        ↓
-Human review
-        ↓
-Explicit approval
-        ↓
-Validated local memory
-```
-
-The API layer handles HTTP validation, authentication, and response models.
-
-The Sentinel package contains:
-
-- normalization;
-- deterministic scoring;
-- recurrence detection;
-- action dispatch.
-
-Approved resolution records are stored locally in JSONL format.
-
-See:
-
-- [`docs/architecture.md`](docs/architecture.md)
-- [`SECURITY.md`](SECURITY.md)
-
-RAVEN is also the reading and correlation capability behind the FOXHUMAN operational workspace. That workspace layer is described in [`docs/foxhuman-workspace.md`](docs/foxhuman-workspace.md) (Portuguese: [`docs/foxhuman-workspace.pt.md`](docs/foxhuman-workspace.pt.md)); its implementation is not part of this public edition.
-
----
-
-## 🚀 Getting started
-
-### ✅ Requirements
-
-- Python 3.11 or newer
-
-Clone the repository and create a virtual environment:
+Development:
 
 ```bash
-python -m venv .venv
-```
-
-Activate it:
-
-### macOS / Linux
-
-```bash
-source .venv/bin/activate
-```
-
-### Windows PowerShell
-
-```powershell
-.\.venv\Scripts\Activate.ps1
-```
-
-Install the project and development dependencies:
-
-```bash
-python -m pip install --upgrade pip
-python -m pip install -e ".[dev]"
-```
-
-Create the local configuration:
-
-### macOS / Linux
-
-```bash
-cp .env.example .env
-```
-
-### Windows PowerShell
-
-```powershell
-Copy-Item .env.example .env
-```
-
-Set a local API key:
-
-### macOS / Linux
-
-```bash
+python -m venv .venv && . .venv/bin/activate
+pip install -e ".[dev]"
 export RAVEN_API_KEY="choose-a-local-development-key"
-```
-
-### Windows PowerShell
-
-```powershell
-$env:RAVEN_API_KEY="choose-a-local-development-key"
-```
-
-Start the API:
-
-```bash
 python -m uvicorn raven.api.main:app --host 127.0.0.1 --port 8000
 ```
 
-Open:
-
-- API documentation: `http://127.0.0.1:8000/docs`
-- Health check: `http://127.0.0.1:8000/health`
-
-Run the test suite:
+Open `http://127.0.0.1:8000/docs` (development only) or `/missions/`. Try it:
 
 ```bash
-python -m pytest tests -q
-```
-
----
-
-## 🧪 Synthetic example
-
-```bash
-curl -X POST "http://127.0.0.1:8000/v1/analyze" \
-  -H "Content-Type: application/json" \
+curl -X POST http://127.0.0.1:8000/v1/analyze -H "Content-Type: application/json" \
   -H "X-API-Key: choose-a-local-development-key" \
-  -d '{
-    "message": "Checkout API returned HTTP 503 after a configuration change in the synthetic staging environment",
-    "source": "application"
-  }'
+  -d '{"message":"Checkout API returned HTTP 503 after a configuration change in the synthetic staging environment","source":"application"}'
 ```
 
-The response includes:
+Tests: `python -m pytest tests -q`.
 
-- risk score;
-- available evidence;
-- investigation hypothesis;
-- context;
-- suggested next steps.
+Production: `cd deploy && cp .env.example .env`, fill it in, `docker compose --env-file .env up -d --build`.
+See [deployment](docs/deployment/deployment.md) and the [runbook](docs/operations/runbook.md).
 
-A complete synthetic workflow is available in:
+## Security expectations
 
-[`examples/synthetic-investigation.http`](examples/synthetic-investigation.http)
+Production refuses to start with a weak or missing key. Keys are compared in constant time, failed attempts lock a
+client address out, bodies are capped, every response carries security headers, and the container runs unprivileged
+with a read-only filesystem. Data files are not encrypted by the application (use an encrypted volume). The service
+has **not** been independently audited. Read the [security model](docs/security/security-model.md) and the
+[data handling](docs/privacy/data-handling.md) notes before storing real incident text.
 
-Additional synthetic log samples are available in:
+## Documentation
 
-[`examples/logs`](examples/logs/README.md)
+Start at [docs/README.md](docs/README.md): product, UX, architecture, API reference, security, privacy,
+operations, deployment, legal, licensing, validation, decisions. Also [CHANGELOG](CHANGELOG.md) and
+[FUTURE](FUTURE.md).
 
----
+## Licence
 
-## 📁 Project structure
+Proprietary, all rights reserved: see [LICENSE](LICENSE). Earlier versions (up to commit `0f66b49`) were MIT.
+Third-party components keep their own licences: [inventory](docs/licensing/THIRD_PARTY.md),
+[details](docs/licensing/LICENSING.md). RAVEN is not affiliated with or endorsed by any observability provider.
 
-```text
-src/raven/api/        FastAPI application, authentication, and HTTP routes
-src/raven/sentinel/   Normalization, scoring, recurrence, and action pipeline
-src/raven/missions/   Cyber Missions: daily investigation practice (static web app + content)
-tests/                Automated tests
-docs/                 Architecture and API notes
-examples/             Synthetic investigation examples
-```
-
----
-
-## 🔒 Security and privacy
-
-All committed examples are synthetic.
-
-Never commit:
-
-- `.env`;
-- API keys;
-- real incident logs;
-- local JSONL resolution data;
-- information copied from a real investigation.
-
-See [`SECURITY.md`](SECURITY.md).
-
----
-
-## ⚠️ Limitations
-
-This public implementation intentionally has clear boundaries:
-
-- scoring and enrichment use deterministic heuristics, not learned models;
-- recurrence windows and rate limits are process-local;
-- validated memory uses local JSONL storage;
-- there are no durability, horizontal-scaling, or high-availability guarantees;
-- hypotheses and suggested next steps require human verification;
-- external observability data must be supplied to the API;
-- no vendor-specific connector is included;
-- security controls are intended for local experimentation, not production hardening.
-
----
-
-## 🧠 How this project reflects my work
-
-RAVEN is not only a technical implementation.
-
-It demonstrates the way I approach operational problems:
-
-**understand the operation → identify the bottleneck → organize requirements → validate the problem → build and test a possible solution**
-
-My current focus is on:
-
-- Process Improvement
-- Business Analysis
-- Product Operations
-- Digital Transformation
-- Technology Operations
-
-Technology is a tool in that process — not the starting point.
-
----
-
-## 🦊 FOXHUMAN
-
-RAVEN is part of FOXHUMAN, an independent project focused on understanding operational problems, reducing complexity, and improving the path from information to decision.
-
-**Complexity behind. Simplicity in front.**
-
----
-
-## ⚖️ Third-party notice
-
-This independent project is not affiliated with, endorsed by, or an official project of any third-party observability provider.
-
----
-
-## 👤 Author
-
-**Michelle Braz**
-
-[LinkedIn](https://www.linkedin.com/in/michelle-braz-perfil/)
-
----
-
-## 📄 License
-
-MIT
+© 2026 Michelle Braz
