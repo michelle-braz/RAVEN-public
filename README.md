@@ -1,365 +1,62 @@
 # RAVEN
 
-**Operational Context Prototype for Incident Investigation**
+**Human-Centered Operational Intelligence**  
+Criada por **Michelle Braz · FOXHUMAN**
 
-RAVEN is a functional technical prototype designed to reduce the effort required to understand what happened before deciding what to investigate next.
+A RAVEN é uma camada de apoio à decisão para transformar sinais operacionais dispersos em uma resposta mais clara e acionável.
 
-It organizes scattered operational information, separates evidence from hypotheses, highlights recurring signals, and keeps the final decision with the human analyst.
+Em linguagem simples, ela ajuda a responder:
 
-RAVEN is part of the broader **FOXHUMAN** approach to human-centered operational systems.
+- **O que aconteceu?**
+- **O que importa agora?**
+- **Quais evidências sustentam isso?**
+- **Qual é a hipótese atual?**
+- **Qual deve ser o próximo passo?**
 
----
+A decisão final continua sendo humana.
 
-## 🎯 Why RAVEN exists
+## O que esta vitrine mostra
 
-During conversations and validation with professionals across:
+Esta página apresenta apenas **o propósito, a experiência e os resultados observáveis da RAVEN**.
 
-**QA • Engineering • Observability • Security • Support • SRE • NOC • Operations**
+A implementação real, o código, os critérios internos, pesos, heurísticas, regras de classificação, arquitetura, controles de segurança, documentação operacional e lógica estratégica **não são publicados**.
 
-a recurring operational problem became clear:
+## Metodologia
 
-important context is often fragmented across tools, tickets, logs, alerts, and previous incidents.
+A RAVEN utiliza uma **metodologia autoral e proprietária da FOXHUMAN**, desenvolvida para reduzir carga cognitiva e organizar informação operacional antes da decisão.
 
-Before a technical investigation can even begin, the person often needs to:
+A metodologia pública pode ser resumida assim:
 
-- understand what happened;
-- identify which information matters;
-- separate facts from assumptions;
-- search across multiple sources;
-- decide where to investigate first.
+**sinal → contexto → evidência → prioridade → hipótese → próximo passo → decisão humana**
 
-RAVEN was created to explore a simpler operational flow for that problem.
+O funcionamento interno dessa metodologia permanece reservado.
 
-> **Understand the context first. Investigate with more direction.**
+## Princípios
 
----
+- complexidade por trás; simplicidade na frente;
+- evidência separada de hipótese;
+- prioridade proporcional ao impacto observado;
+- decisão humana preservada;
+- privacidade e uso controlado;
+- explicação suficiente para agir, sem exposição desnecessária do mecanismo interno.
 
-## ⚙️ What RAVEN does
+## Experiência controlada
 
-RAVEN receives an incident signal and returns a structured investigation context.
+Uma versão limitada da RAVEN pode ser usada para experimentar o fluxo com dados próprios:
 
-The public implementation can:
+**RAVEN — experiência controlada**  
+https://raven-cloud-proof-production.up.railway.app/try
 
-- normalize individual incident signals;
-- apply deterministic, rule-based risk scoring;
-- group recurring signals under stable incident identifiers;
-- organize available evidence;
-- separate evidence from an investigation hypothesis;
-- suggest possible investigation steps;
-- keep the final decision with the human analyst;
-- record only explicitly approved resolution context.
+A superfície pública é deliberadamente limitada. Código, infraestrutura, segredos e documentação interna permanecem privados.
 
-The goal is not to automate the analyst's decision.
+## FOXHUMAN
 
-The goal is to reduce the effort required to understand the situation before that decision is made.
+A RAVEN faz parte da **FOXHUMAN — Human-Centered Operational Systems**.
 
----
+> Complexidade por trás; simplicidade na frente.
 
-## 🧭 Example investigation flow
+## Autoria e uso
 
-```text
-Incident signal
-      ↓
-Normalize information
-      ↓
-Identify recurrence and risk
-      ↓
-Organize evidence
-      ↓
-Separate evidence from hypothesis
-      ↓
-Suggest investigation steps
-      ↓
-Human review and decision
-      ↓
-Optional approved resolution memory
-```
+Conceito, metodologia, estrutura de decisão e implementação: **Michelle Braz / FOXHUMAN**.
 
-This reflects the core principle behind the project:
-
-**complexity behind the scenes, clearer context in front of the analyst.**
-
----
-
-## 🚧 Status
-
-RAVEN is under active development.
-
-The following parts are functional in the public repository:
-
-- analysis pipeline;
-- REST API;
-- structured investigation output;
-- recurrence detection;
-- deterministic scoring;
-- evidence and hypothesis separation;
-- suggested next steps;
-- human-approved resolution memory;
-- automated tests.
-
-The public repository contains only synthetic examples and no third-party operational data.
-
-RAVEN is not presented as:
-
-- a finished commercial platform;
-- a production-ready incident-management system;
-- a replacement for observability platforms;
-- an autonomous decision-making system.
-
----
-
-## 🎯 Cyber Missions
-
-RAVEN also powers **Cyber Missions**: one practical cybersecurity ticket per day, solved with RAVEN's investigation logic — evidence → hypothesis → next step.
-
-Open `http://127.0.0.1:8000/missions/` after starting the API (no key required), or deploy `src/raven/missions/web/` as a static site.
-
-See [`docs/cyber-missions.md`](docs/cyber-missions.md).
-
----
-
-## 🛠️ Technical implementation
-
-RAVEN is built with:
-
-`Python` • `FastAPI` • `REST APIs` • `JSONL` • `Pytest`
-
-The current public architecture follows this flow:
-
-```text
-FastAPI request validation
-        ↓
-Signal normalization
-        ↓
-Scoring and recurrence detection
-        ↓
-Context enrichment
-        ↓
-Evidence / hypothesis / next steps
-        ↓
-Human review
-        ↓
-Explicit approval
-        ↓
-Validated local memory
-```
-
-The API layer handles HTTP validation, authentication, and response models.
-
-The Sentinel package contains:
-
-- normalization;
-- deterministic scoring;
-- recurrence detection;
-- action dispatch.
-
-Approved resolution records are stored locally in JSONL format.
-
-See:
-
-- [`docs/architecture.md`](docs/architecture.md)
-- [`SECURITY.md`](SECURITY.md)
-
-RAVEN is also the reading and correlation capability behind the FOXHUMAN operational workspace. That workspace layer is described in [`docs/foxhuman-workspace.md`](docs/foxhuman-workspace.md) (Portuguese: [`docs/foxhuman-workspace.pt.md`](docs/foxhuman-workspace.pt.md)); its implementation is not part of this public edition.
-
----
-
-## 🚀 Getting started
-
-### ✅ Requirements
-
-- Python 3.11 or newer
-
-Clone the repository and create a virtual environment:
-
-```bash
-python -m venv .venv
-```
-
-Activate it:
-
-### macOS / Linux
-
-```bash
-source .venv/bin/activate
-```
-
-### Windows PowerShell
-
-```powershell
-.\.venv\Scripts\Activate.ps1
-```
-
-Install the project and development dependencies:
-
-```bash
-python -m pip install --upgrade pip
-python -m pip install -e ".[dev]"
-```
-
-Create the local configuration:
-
-### macOS / Linux
-
-```bash
-cp .env.example .env
-```
-
-### Windows PowerShell
-
-```powershell
-Copy-Item .env.example .env
-```
-
-Set a local API key:
-
-### macOS / Linux
-
-```bash
-export RAVEN_API_KEY="choose-a-local-development-key"
-```
-
-### Windows PowerShell
-
-```powershell
-$env:RAVEN_API_KEY="choose-a-local-development-key"
-```
-
-Start the API:
-
-```bash
-python -m uvicorn raven.api.main:app --host 127.0.0.1 --port 8000
-```
-
-Open:
-
-- API documentation: `http://127.0.0.1:8000/docs`
-- Health check: `http://127.0.0.1:8000/health`
-
-Run the test suite:
-
-```bash
-python -m pytest tests -q
-```
-
----
-
-## 🧪 Synthetic example
-
-```bash
-curl -X POST "http://127.0.0.1:8000/v1/analyze" \
-  -H "Content-Type: application/json" \
-  -H "X-API-Key: choose-a-local-development-key" \
-  -d '{
-    "message": "Checkout API returned HTTP 503 after a configuration change in the synthetic staging environment",
-    "source": "application"
-  }'
-```
-
-The response includes:
-
-- risk score;
-- available evidence;
-- investigation hypothesis;
-- context;
-- suggested next steps.
-
-A complete synthetic workflow is available in:
-
-[`examples/synthetic-investigation.http`](examples/synthetic-investigation.http)
-
-Additional synthetic log samples are available in:
-
-[`examples/logs`](examples/logs/README.md)
-
----
-
-## 📁 Project structure
-
-```text
-src/raven/api/        FastAPI application, authentication, and HTTP routes
-src/raven/sentinel/   Normalization, scoring, recurrence, and action pipeline
-src/raven/missions/   Cyber Missions: daily investigation practice (static web app + content)
-tests/                Automated tests
-docs/                 Architecture and API notes
-examples/             Synthetic investigation examples
-```
-
----
-
-## 🔒 Security and privacy
-
-All committed examples are synthetic.
-
-Never commit:
-
-- `.env`;
-- API keys;
-- real incident logs;
-- local JSONL resolution data;
-- information copied from a real investigation.
-
-See [`SECURITY.md`](SECURITY.md).
-
----
-
-## ⚠️ Limitations
-
-This public implementation intentionally has clear boundaries:
-
-- scoring and enrichment use deterministic heuristics, not learned models;
-- recurrence windows and rate limits are process-local;
-- validated memory uses local JSONL storage;
-- there are no durability, horizontal-scaling, or high-availability guarantees;
-- hypotheses and suggested next steps require human verification;
-- external observability data must be supplied to the API;
-- no vendor-specific connector is included;
-- security controls are intended for local experimentation, not production hardening.
-
----
-
-## 🧠 How this project reflects my work
-
-RAVEN is not only a technical implementation.
-
-It demonstrates the way I approach operational problems:
-
-**understand the operation → identify the bottleneck → organize requirements → validate the problem → build and test a possible solution**
-
-My current focus is on:
-
-- Process Improvement
-- Business Analysis
-- Product Operations
-- Digital Transformation
-- Technology Operations
-
-Technology is a tool in that process — not the starting point.
-
----
-
-## 🦊 FOXHUMAN
-
-RAVEN is part of FOXHUMAN, an independent project focused on understanding operational problems, reducing complexity, and improving the path from information to decision.
-
-**Complexity behind. Simplicity in front.**
-
----
-
-## ⚖️ Third-party notice
-
-This independent project is not affiliated with, endorsed by, or an official project of any third-party observability provider.
-
----
-
-## 👤 Author
-
-**Michelle Braz**
-
-[LinkedIn](https://www.linkedin.com/in/michelle-braz-perfil/)
-
----
-
-## 📄 License
-
-MIT
+Para colaboração, piloto, licenciamento ou utilização comercial, entre em contato diretamente pela página profissional da autora.
