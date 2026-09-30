@@ -1,5 +1,7 @@
 # Cyber Missions
 
+> Classification: Product
+
 Cyber Missions is a daily, ticket-based cybersecurity practice built on RAVEN's
 investigation structure. Each day opens one mission; the learner investigates,
 forms a hypothesis, gets teaching feedback, explains in their own words, and
@@ -40,16 +42,28 @@ once the central concepts are present or after three attempts — what it means.
 - Through the RAVEN API: `python -m uvicorn raven.api.main:app` and open
   `http://127.0.0.1:8000/missions/` (public, no API key).
 - As a static site: serve `src/raven/missions/web/` with any static host
-  (`vercel.json` in the repository root does this on Vercel).
+  (`vercel.json` in the repository root does this on Vercel, with a strict CSP).
 
-Progress is stored in the browser (`localStorage`); the "Backup do progresso"
-page copies/restores it to use on another device.
+## Data and privacy
+
+Progress (completed missions, XP, the learner's own written answers) is stored **only in the browser**
+(`localStorage`). There is no account, no server-side storage, no cookie, no analytics and no external
+request; the page loads nothing from third parties (CSP `default-src 'self'`). The "Backup do progresso" page
+copies or restores that data by hand. Clearing site data erases it.
+
+## Language
+
+The interface and the mission content are Brazilian Portuguese by design (the audience is Portuguese-speaking
+learners). Documentation, code and API are English.
 
 ## Tests
 
 ```bash
 python -m pytest tests -q                   # includes the JS engine suite when node is installed
 node --test tests/missions/*.test.mjs       # engine only
-# end-to-end in a real browser (server running on :8765):
-BASE_URL=http://127.0.0.1:8765/missions/ MISSIONS_TO_PLAY=33 node tests/missions/e2e/flow.e2e.mjs
+# Browser checks against a running server (need `playwright`; the accessibility check also needs `@axe-core/playwright`):
+BASE_URL=http://127.0.0.1:8000/missions/ MISSIONS_TO_PLAY=33 node tests/missions/e2e/flow.e2e.mjs   # all 33 missions, mobile
+BASE_URL=http://127.0.0.1:8000/missions/ node tests/missions/e2e/a11y.e2e.mjs                       # WCAG A/AA, 2 viewports x 2 themes
 ```
+
+Results: [validation report](../validation/readiness-report.md).

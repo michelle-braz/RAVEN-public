@@ -122,6 +122,14 @@ def test_purge_is_a_dry_run_until_confirmed(seeded, capsys):
     assert not [p for p in store.data_dir().iterdir() if p.name.startswith(".rewrite-")]
 
 
+def test_output_uses_the_right_tense(seeded, capsys):
+    admin.main(["delete", "--incident-id", "new"])
+    assert "would be deleted" in capsys.readouterr().out
+    admin.main(["delete", "--incident-id", "new", "--yes"])
+    out = capsys.readouterr().out
+    assert "were deleted" in out and "would be" not in out
+
+
 def test_purge_rejects_a_bad_date(seeded, capsys):
     assert admin.main(["purge", "--before", "yesterday"]) == 2
 

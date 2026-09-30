@@ -131,12 +131,12 @@ def _check_key_limit(api_key: str, tier: str) -> None:
         )
 
 
-def check_ip_rate_limit(ip: str) -> None:
-    """Enforce 30 req/min per source IP. Raises HTTP 429 on breach."""
-    if not _ip_limiter.hit(ip):
+def check_ip_rate_limit(ip: str, limit: int = _IP_LIMIT) -> None:
+    """Enforce ``limit`` req/min per source IP (default 30). Raises HTTP 429 on breach."""
+    if not _ip_limiter.hit(ip, limit=limit):
         raise HTTPException(
             status_code=429,
-            detail=f"Rate limit exceeded ({_IP_LIMIT} req/min per IP).",
+            detail=f"Rate limit exceeded ({limit} req/min per IP).",
         )
 
 

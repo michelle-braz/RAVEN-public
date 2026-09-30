@@ -112,6 +112,18 @@ def test_trusted_proxy_uses_the_rightmost_hop(keyed):
         assert blocked.status_code == 429
 
 
+def test_analyze_rate_limit_is_per_client_and_configurable(keyed):
+    with client_for(RAVEN_RATE_LIMIT_PER_MINUTE="3") as c:
+        codes = [c.post("/v1/analyze", json=BODY, headers={"X-API-Key": CUSTOMER}).status_code for _ in range(5)]
+        assert codes == [200, 200, 200, 429, 429]
+    with client_for() as c:  # default stays 30/min
+        auth.reset_limiters()
+        codes = [c.post("/v1/analyze", json=BODY, headers={"X-API-Key": CUSTOMER}).status_code for _ in range(31)]
+        assert codes[:30] == [200] * 30 and codes[30] == 429
+    with pytest.raises(ConfigError):
+        load_settings({"RAVEN_RATE_LIMIT_PER_MINUTE": "many"})
+
+
 # ── Input limits and validation ───────────────────────────────────────────────
 
 def test_oversized_body_is_refused_before_parsing(keyed):
@@ -119,6 +131,15 @@ def test_oversized_body_is_refused_before_parsing(keyed):
         r = c.post("/evaluate", content=b"{" + b" " * 5000 + b"}",
                    headers={"X-API-Key": CUSTOMER, "Content-Type": "application/json"})
         assert r.status_code == 413 and r.json()["code"] == "payload_too_large"
+
+
+def test_authentication_happens_before_the_body_is_read(keyed):
+    with client_for(RAVEN_MAX_BODY_BYTES="2048") as c:
+        body = b"{" + b" " * 5000 + b"}"
+        anon = c.post("/evaluate", content=body, headers={"Content-Type": "application/json"})
+        assert anon.status_code == 401  # not 413: unauthenticated callers never get the body examined
+        surrogate = c.post("/evaluate", content=b'{"message": "\\ud83d"}', headers={"Content-Type": "application/json"})
+        assert surrogate.status_code == 401
 
 
 def test_chunked_body_without_length_is_refused(keyed):
@@ -174,6 +195,7 @@ def test_security_headers_on_api_and_pages(keyed):
         assert api.headers["cache-control"] == "no-store"
         assert "frame-ancestors 'none'" in api.headers["content-security-policy"]
         assert api.headers["x-request-id"]
+        assert api.headers["x-frame-options"] == "DENY"
         page = c.get("/")
         assert "unsafe-inline" not in page.headers["content-security-policy"]
         assert "frame-ancestors 'none'" in c.get("/missions/").headers["content-security-policy"]

@@ -144,6 +144,7 @@ def _apply_security_headers(path: str, response, settings: Settings) -> None:
     h["Permissions-Policy"] = "camera=(), microphone=(), geolocation=()"
     h["Cross-Origin-Opener-Policy"] = "same-origin"
     h["Cross-Origin-Resource-Policy"] = "same-origin"
+    h["X-Frame-Options"] = "DENY"  # legacy twin of frame-ancestors 'none'
     if settings.is_production:
         h["Strict-Transport-Security"] = "max-age=31536000; includeSubDomains"
     if path == "/":

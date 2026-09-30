@@ -37,7 +37,7 @@ _EVENT_PATTERNS: list[tuple[str, re.Pattern[str]]] = [
         # deploy (no word boundary) catches both "deploy" and "deployment".
         # restart has an explicit \b so it doesn't match "restarts" inside
         # investigation-checklist language ("confirmar se há restarts...").
-        r"deploy|rollout|release|migration|\brestart\b|config.change|upgrade|post.deploy|after.deploy",
+        r"deploy|rollout|release|migration|\brestart\b|config(?:uration)?.change|upgrade|post.deploy|after.deploy",
         re.I,
     )),
     ("service_unavailable", re.compile(
@@ -191,23 +191,7 @@ def _extract_evidence(assessment: RiskAssessment, source: SourceType) -> list[st
 
 # ── Context derivation ─────────────────────────────────────────────────────────
 
-_DEPLOYMENT_RE = re.compile(r"deploy|rollout|release|\brestart\b|migration|config.change|upgrade", re.I)
-
-_DOWNSTREAM: dict[str, list[str]] = {
-    "auth-service":    ["user-api", "api-gateway"],
-    "database-cluster":["application-service", "user-api"],
-    "api-gateway":     ["application-service"],
-    "payment-service": ["checkout-api", "notification-service"],
-    "user-api":        ["api-gateway"],
-}
-
-_TICKET_ESTIMATE: dict[Severity, int] = {
-    Severity.LOW:      0,
-    Severity.MEDIUM:   1,
-    Severity.HIGH:     2,
-    Severity.CRITICAL: 4,
-}
-
+_DEPLOYMENT_RE = re.compile(r"deploy|rollout|release|\brestart\b|migration|config(?:uration)?.change|upgrade", re.I)
 
 def _derive_context(
     message: str,
@@ -215,26 +199,21 @@ def _derive_context(
     monitored_object: str,
     assessment: RiskAssessment,
 ) -> dict[str, Any]:
-    recent_deployment = bool(_DEPLOYMENT_RE.search(message))
+    """Only what can be observed: the recurrence window and the wording of the message.
 
-    affected: list[str] = []
-    if monitored_object != "unknown":
-        affected.append(monitored_object)
-    for svc in _DOWNSTREAM.get(monitored_object, []):
-        if svc not in affected:
-            affected.append(svc)
-
+    RAVEN has no view of the customer's topology or ticketing, so it never estimates
+    downstream services or ticket counts.
+    """
     return {
         "related_alerts": max(0, recurrence - 1),
-        "related_tickets": _TICKET_ESTIMATE.get(assessment.severity, 0),
-        "recent_deployment": recent_deployment,
-        "affected_services": affected[:4],
+        "recent_deployment": bool(_DEPLOYMENT_RE.search(message)),
+        "affected_services": [monitored_object] if monitored_object != "unknown" else [],
     }
 
 
 # ── Historical context ─────────────────────────────────────────────────────────
 
-_KNOWN_RESOLUTIONS: dict[str, str] = {
+_PLAYBOOKS: dict[str, str] = {
     "authentication_failure":     "Restart authentication service; validate LDAP/OAuth connectivity and credentials",
     "service_unavailable":        "Verify pod/container health; check resource limits; roll back if post-deployment",
     "error_rate_increase":        "Identify dominant error class; correlate with deployments; check dependency health",
@@ -246,30 +225,23 @@ _KNOWN_RESOLUTIONS: dict[str, str] = {
 
 
 def _historical_context(event_type: str, recurrence: int) -> dict[str, Any]:
-    if recurrence <= 1:
-        last_occurrence = "first occurrence"
-    elif recurrence <= 3:
-        last_occurrence = "within last hour"
-    elif recurrence <= 10:
-        last_occurrence = "within last 24 hours"
-    else:
-        last_occurrence = "within last 7 days"
+    """Recurrence as observed in the active in-memory window (not a 30-day history).
 
+    ``suggested_playbook`` is a generic starting point per event type. It is NOT a
+    resolution learned from this customer's past incidents.
+    """
     return {
-        "similar_incidents_last_30d": min(recurrence * 3, 30),
-        "last_occurrence": last_occurrence,
-        "known_resolution": _KNOWN_RESOLUTIONS.get(event_type, _KNOWN_RESOLUTIONS["unknown"]),
+        "occurrences_in_active_window": recurrence,
+        "last_occurrence": (
+            "first occurrence in the active window"
+            if recurrence <= 1
+            else f"seen {recurrence} times in the active window"
+        ),
+        "suggested_playbook": _PLAYBOOKS.get(event_type, _PLAYBOOKS["unknown"]),
     }
 
 
 # ── Impact estimation ──────────────────────────────────────────────────────────
-
-_USER_IMPACT: dict[Severity, int] = {
-    Severity.LOW:      0,
-    Severity.MEDIUM:   50,
-    Severity.HIGH:     500,
-    Severity.CRITICAL: 2000,
-}
 
 _CRITICALITY: dict[Severity, str] = {
     Severity.LOW:      "low",
@@ -280,11 +252,11 @@ _CRITICALITY: dict[Severity, str] = {
 
 
 def _estimate_impact(assessment: RiskAssessment, context: dict[str, Any]) -> dict[str, Any]:
-    affected_count = len(context.get("affected_services", []))
+    """Severity-derived label. RAVEN cannot see users or business context, so it reports none."""
     return {
-        "affected_users": _USER_IMPACT.get(assessment.severity, 0),
-        "affected_services": affected_count if assessment.severity != Severity.LOW else 0,
+        "affected_services": len(context.get("affected_services", [])),
         "business_criticality": _CRITICALITY.get(assessment.severity, "low"),
+        "basis": "derived from severity and message wording; not a measured impact",
     }
 
 

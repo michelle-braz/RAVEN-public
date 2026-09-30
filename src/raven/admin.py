@@ -87,7 +87,7 @@ def _apply(keep, args: argparse.Namespace, verb: str) -> int:
         kept = [r for r in rows if keep(r)]
         drop = len(rows) - len(kept)
         if drop:
-            print(f"{name}: {drop} of {len(rows)} records would be {verb}")
+            print(f"{name}: {drop} of {len(rows)} records {'were' if args.yes else 'would be'} {verb}")
             if args.yes:
                 _write_atomic(store.data_dir() / name, kept)
             changed += drop

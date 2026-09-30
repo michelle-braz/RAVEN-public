@@ -44,6 +44,7 @@ class Settings:
     docs_enabled: bool = True
     max_body_bytes: int = DEFAULT_MAX_BODY_BYTES
     trusted_proxy_hops: int = 0
+    rate_limit_per_minute: int = 30
     data_dir: Path = Path("data")
     log_level: str = "info"
 
@@ -66,6 +67,8 @@ class Settings:
             problems.append("CORS_ORIGINS must list explicit origins, not '*'.")
         if not self.data_dir.is_dir() or not os.access(self.data_dir, os.W_OK):
             problems.append(f"RAVEN_DATA_DIR ({self.data_dir}) must exist and be writable.")
+        if not 1 <= self.rate_limit_per_minute <= 100_000:
+            problems.append("RAVEN_RATE_LIMIT_PER_MINUTE must be between 1 and 100000.")
         if self.trusted_proxy_hops < 0:
             problems.append("RAVEN_TRUSTED_PROXY_HOPS must not be negative.")
         return problems
@@ -91,6 +94,7 @@ def load_settings(env: Mapping[str, str] | None = None) -> Settings:
         docs_enabled=_flag(env, "RAVEN_ENABLE_DOCS", not production),
         max_body_bytes=max_body,
         trusted_proxy_hops=_int(env, "RAVEN_TRUSTED_PROXY_HOPS", 0),
+        rate_limit_per_minute=_int(env, "RAVEN_RATE_LIMIT_PER_MINUTE", 30),
         data_dir=Path(env.get("RAVEN_DATA_DIR", "data")),
         log_level=env.get("LOG_LEVEL", "info").strip().lower() or "info",
     )

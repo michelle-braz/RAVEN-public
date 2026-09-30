@@ -45,9 +45,10 @@ expect 404 "$BASE/docs"
 expect 404 "$BASE/openapi.json"
 expect 403 -H "X-API-Key: $CUSTOMER" "$BASE/ops/metrics"
 expect 200 -H "X-API-Key: $OPERATOR" "$BASE/ops/metrics"
-curl -sI "$BASE/health" | grep -qi '^strict-transport-security:' || fail "HSTS header missing"
-curl -sI "$BASE/health" | grep -qi '^x-content-type-options: nosniff' || fail "nosniff header missing"
-curl -sI "$BASE/health" | grep -qi '^server: caddy' && echo "note: proxy announces its name (harmless)"
+headers="$(curl -sI "$BASE/health" | tr -d '\r' | tr 'A-Z' 'a-z')"
+case "$headers" in *"strict-transport-security: max-age="*) ;; *) fail "HSTS header missing";; esac
+case "$headers" in *"x-content-type-options: nosniff"*) ;; *) fail "nosniff header missing";; esac
+case "$headers" in *"x-frame-options: deny"*) ;; *) fail "X-Frame-Options missing";; esac
 published="$("${DC[@]}" port app 8000 2>/dev/null || true)"
 case "$published" in ""|*":0") ;; *) fail "app port must not be published (got $published)";; esac
 [ "$("${DC[@]}" exec -T app id -u)" = "10001" ] || fail "app must not run as root"
@@ -65,7 +66,7 @@ expect 200 "$BASE/missions/"
 echo "== persistence across restart"
 "${DC[@]}" restart app >/dev/null
 for _ in $(seq 1 60); do [ "$(code "$BASE/ready")" = "200" ] && break; sleep 1; done
-"${DC[@]}" exec -T app python -m raven.admin stats | grep -q 'validated_incidents.jsonl: 1 records' || fail "record lost after restart"
+out="$("${DC[@]}" exec -T app python -m raven.admin stats)"; case "$out" in *"validated_incidents.jsonl: 1 records"*) ;; *) fail "record lost after restart: $out";; esac
 
 echo "== backup, erase, restore"
 ./backup.sh "$WORK/backup" >/dev/null
@@ -73,7 +74,23 @@ echo "== backup, erase, restore"
 docker run --rm --user 0 --entrypoint sh -v "$RAVEN_DATA_VOLUME":/data "$RAVEN_IMAGE" -c 'find /data -mindepth 1 -delete'
 ENV_FILE="$ENV_FILE" ./restore.sh "$WORK/backup" --yes >/dev/null
 for _ in $(seq 1 60); do [ "$(code "$BASE/ready")" = "200" ] && break; sleep 1; done
-"${DC[@]}" exec -T app python -m raven.admin stats | grep -q 'validated_incidents.jsonl: 1 records' || fail "restore did not bring the record back"
+out="$("${DC[@]}" exec -T app python -m raven.admin stats)"; case "$out" in *"validated_incidents.jsonl: 1 records"*) ;; *) fail "restore did not bring the record back: $out";; esac
+
+echo "== operator tools in the container (as documented in the runbook)"
+out="$("${DC[@]}" run --rm --no-deps app python -m raven.admin keys new "Smoke Customer" 2>/dev/null)"
+case "$out" in key:*) ;; *) fail "key generation failed: $out";; esac
+out="$("${DC[@]}" exec -T app python -m raven.admin export --out /data/export.json)"
+case "$out" in *"exported to"*) ;; *) fail "export failed: $out";; esac
+"${DC[@]}" exec -T app sh -c 'test "$(stat -c %a /data/export.json)" = 600 && rm /data/export.json' || fail "export file must be 0600"
+out="$("${DC[@]}" exec -T app python -m raven.admin purge --before 2000-01-01)"
+case "$out" in *"nothing to do"*) ;; *) fail "purge dry run misbehaved: $out";; esac
+"${DC[@]}" stop app >/dev/null
+out="$("${DC[@]}" run --rm --no-deps app python -m raven.admin delete --incident-id "$INCIDENT" --yes)"
+case "$out" in *"were deleted"*) ;; *) fail "erasure did nothing: $out";; esac
+"${DC[@]}" up -d app >/dev/null
+for _ in $(seq 1 60); do [ "$(code "$BASE/ready")" = "200" ] && break; sleep 1; done
+out="$("${DC[@]}" exec -T app python -m raven.admin stats)"
+case "$out" in *"validated_incidents.jsonl: 0 records"*) ;; *) fail "erasure left the record behind: $out";; esac
 
 echo "== brute force is throttled per real client, spoofed X-Forwarded-For does not help"
 for i in $(seq 1 12); do code -H "X-API-Key: guess-$i" -H "X-Forwarded-For: 203.0.113.$i" "$BASE/beta/impact-summary" >/dev/null; done

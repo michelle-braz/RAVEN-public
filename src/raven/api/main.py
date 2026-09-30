@@ -14,6 +14,7 @@ from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import HTMLResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
+from starlette.middleware.base import BaseHTTPMiddleware
 
 from raven import __version__
 from raven.api import auth as _auth
@@ -147,10 +148,10 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     # (evidence → hypothesis → next step). Static and public; no API key needed.
     app.mount("/missions", StaticFiles(directory=MISSIONS_WEB_DIR, html=True), name="missions")
 
-    # Middleware order (innermost first): access gate → body cap → CORS → request context.
-    # CORS wraps the gate so 401/403/413 responses still carry correct CORS headers.
+    # Middleware order, outermost first: request context → CORS → access gate → body guard → routes.
+    # Authentication happens before any request body is read or parsed, and CORS wraps the
+    # gate so 401/403/413 responses still carry correct CORS headers.
 
-    @app.middleware("http")
     async def access_gate(request: Request, call_next):
         path = request.url.path
         if (
@@ -179,6 +180,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         return await call_next(request)
 
     app.add_middleware(BodyLimitMiddleware, max_bytes=settings.max_body_bytes)
+    app.add_middleware(BaseHTTPMiddleware, dispatch=access_gate)
     app.add_middleware(
         CORSMiddleware,
         allow_origins=list(settings.cors_origins),
