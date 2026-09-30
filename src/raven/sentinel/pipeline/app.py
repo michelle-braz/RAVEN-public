@@ -1,35 +1,21 @@
 """
-Sentinel — Orchestration Core (FastAPI)
-=======================================
-The only module that knows about HTTP. Wires the four decoupled layers
-together via Dependency Injection.
-
-    POST /ingest   — batch ingestion → normalize → score → act
-    POST /analyze  — single-event convenience endpoint
-    GET  /health   — liveness/readiness probe
+Sentinel — Orchestration Core
+=============================
+Sequences the four decoupled layers (normalize → context → assess → act) and
+holds the bounded recurrence window. It has no HTTP surface: the only public
+entry point is the authenticated API in ``raven.api``.
 """
 
 from __future__ import annotations
 
 import asyncio
-import os
 import time
 from collections import Counter, deque
 from collections.abc import Callable
-from contextlib import asynccontextmanager
 from dataclasses import dataclass
-from typing import Annotated, AsyncIterator
 
-import httpx
-from fastapi import Depends, FastAPI, HTTPException, Request
-
-from raven.sentinel import __version__
 from raven.sentinel.observability import BackpressurePolicy, BufferFull, EventBuffer
-from raven.sentinel.pipeline.action_layer.notifier import (
-    ActionDispatcher,
-    LogChannel,
-    WebhookChannel,
-)
+from raven.sentinel.pipeline.action_layer.notifier import ActionDispatcher
 from raven.sentinel.pipeline.data_layer.schemas import (
     IngestionBatch,
     IngestionResult,
@@ -41,7 +27,6 @@ from raven.sentinel.pipeline.intelligence_layer.engine import (
     KnownIncident,
     RiskEngine,
     ScoringContext,
-    build_engine,
 )
 from raven.sentinel.pipeline.signal_layer.normalizer import normalize
 
@@ -184,84 +169,3 @@ class IngestionPipeline:
             severity_breakdown={sev: breakdown.get(sev, 0) for sev in Severity},
             actions_dispatched=actions_total,
         )
-
-
-# ── Composition root ──────────────────────────────────────────────────────────
-
-
-@asynccontextmanager
-async def lifespan(app: FastAPI) -> AsyncIterator[None]:
-    http_client = httpx.AsyncClient()
-    dispatcher = ActionDispatcher([LogChannel(min_severity=Severity.MEDIUM)])
-
-    webhook_url = os.getenv("SENTINEL_WEBHOOK_URL")
-    if webhook_url:
-        dispatcher.register(WebhookChannel(
-            name="primary-webhook",
-            url=webhook_url,
-            client=http_client,
-            min_severity=Severity.HIGH,
-        ))
-
-    window = SignalWindow(
-        maxlen=int(os.getenv("SENTINEL_WINDOW_MAXLEN", "5000")),
-        ttl_seconds=float(os.getenv("SENTINEL_WINDOW_TTL", "3600")),
-    )
-    engine = build_engine()
-
-    buf_maxsize = int(os.getenv("SENTINEL_BUFFER_MAXSIZE", str(_DEFAULT_BUFFER_MAXSIZE)))
-    buf_policy_name = os.getenv("SENTINEL_BUFFER_POLICY", "DROP_NEWEST").upper()
-    buf_policy = BackpressurePolicy[buf_policy_name]
-    buf: EventBuffer[RawEvent] = EventBuffer(maxsize=buf_maxsize)
-
-    app.state.http_client = http_client
-    app.state.pipeline = IngestionPipeline(
-        engine=engine,
-        dispatcher=dispatcher,
-        window=window,
-        buf=buf,
-        policy=buf_policy,
-    )
-    try:
-        yield
-    finally:
-        await http_client.aclose()
-
-
-app = FastAPI(
-    title="RAVEN Sentinel",
-    description="Risk Intelligence Layer.",
-    version=__version__,
-    lifespan=lifespan,
-)
-
-
-def get_pipeline(request: Request) -> IngestionPipeline:
-    return request.app.state.pipeline
-
-
-PipelineDep = Annotated[IngestionPipeline, Depends(get_pipeline)]
-
-
-@app.get("/health", tags=["ops"])
-async def health(pipeline: PipelineDep) -> dict[str, object]:
-    return {
-        "status": "ok",
-        "service": "sentinel",
-        "version": __version__,
-        "buffer": pipeline.buffer_metrics(),
-    }
-
-
-@app.post("/ingest", response_model=IngestionResult, tags=["ingestion"])
-async def ingest(batch: IngestionBatch, pipeline: PipelineDep) -> IngestionResult:
-    return await pipeline.process_batch(batch)
-
-
-@app.post("/analyze", response_model=RiskAssessment, tags=["ingestion"])
-async def analyze(event: RawEvent, pipeline: PipelineDep) -> RiskAssessment:
-    try:
-        assessment, _ = await pipeline.process_event(event)
-    except BufferFull:
-        raise HTTPException(status_code=429, detail="Pipeline buffer full. Retry later.")
-    return assessment

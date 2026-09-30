@@ -1,15 +1,19 @@
 # Security policy
 
-Do not report vulnerabilities through a public issue when the report contains exploit details, credentials, personal data, or real incident information.
+## Reporting a vulnerability
 
-This repository intentionally contains no public security contact address. Use the private security-reporting feature provided by the repository host when available.
+Report privately through GitHub's private vulnerability reporting for this repository (Security tab → *Report a
+vulnerability*). Do not open a public issue for a vulnerability, and do not include real incident data, credentials
+or personal data in a report; a minimal synthetic reproduction is enough.
 
-Never commit:
+Response and disclosure commitments are set in customer agreements ([legal](docs/legal/README.md)).
 
-- `.env` files or API keys;
-- real incident payloads, logs, tickets, or transcripts;
-- local JSONL data;
-- webhook URLs or credentials;
-- personal or third-party-identifying information.
+## Scope and posture
 
-RAVEN is under active development and has not been independently security audited.
+The security model, controls and known residual risks are in [docs/security](docs/security/security-model.md).
+RAVEN has not been independently audited.
+
+## Never commit
+
+`.env` files, API keys, real incident payloads, logs, tickets or transcripts, JSONL data files, backups, or personal
+data. `.gitignore` covers the usual paths and a test scans tracked files for secret patterns.

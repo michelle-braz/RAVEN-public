@@ -1,0 +1,42 @@
+name: CI
+on:
+  push: { branches: [main] }
+  pull_request:
+permissions:
+  contents: read
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix: { python: ["3.11", "3.12"] }
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: { python-version: "${{ matrix.python }}" }
+      - name: Install from the lock file
+        run: |
+          pip install -r requirements.lock pytest
+          pip install --no-deps -e .
+      - run: python -m pytest tests -q
+      - name: Licence inventory is current and allowed
+        if: matrix.python == '3.11'
+        run: python tools/license_inventory.py --check
+      - name: OpenAPI contract is current
+        if: matrix.python == '3.11'
+        run: python tools/export_openapi.py --check
+      - name: Dependency vulnerabilities
+        run: |
+          pip install pip-audit
+          pip-audit -r requirements.lock
+  missions:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: 22 }
+      - run: node --test tests/missions/*.test.mjs
+  deploy-smoke:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: deploy/smoke.sh
