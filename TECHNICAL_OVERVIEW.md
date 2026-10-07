@@ -1,206 +1,48 @@
-# RAVEN — Visual Technical Overview
+# RAVEN — visão técnica de alto nível
 
-> A public, high-level technical map of RAVEN.  
-> Proprietary heuristics, weights, private rules and internal engine implementation are intentionally not exposed.
+[Apresentação](README.md). Documento de arquitetura segura para conhecer o produto, sem expor implementação, heurísticas, pesos ou infraestrutura sensível.
 
----
-
-## 🧭 System purpose
-
-RAVEN is a human-centered decision-support layer for professional technical investigation.
-
-Its job is to transform an incoming case into a structured result while preserving the professional as the final decision-maker.
+## Fluxo atual
 
 ```mermaid
 flowchart LR
-    A[Input] --> B[Professional area]
-    B --> C[Triage]
-    C --> D[Relevant investigation lines]
-    D --> E[Structured result]
-    E --> F{Human decision}
-    F -->|Approve| G[History]
-    F -->|Adjust| G
-    F -->|Reject| G
+    A[E-mail e OTP] --> B[Perfil e área salvos]
+    B --> C[Conteúdo autorizado]
+    C --> D[Evidências e origem]
+    D --> E[Triagem e método profissional]
+    E --> F[Análise rastreável]
+    F --> G{Decisão humana}
+    G --> H[Histórico e reabertura]
 ```
 
----
+## Camadas
 
-## 🏗️ Architecture at a glance
-
-```mermaid
-flowchart TB
-    U[Professional user]
-    W[Web application]
-    API[API layer]
-    ENG[Investigation engine]
-    HIST[Account-linked history]
-
-    U --> W
-    W --> API
-    API --> ENG
-    ENG --> API
-    API --> HIST
-    HIST --> API
-    API --> W
-```
-
-### Main layers
-
-| Layer | Responsibility |
+| Camada | Responsabilidade |
 |---|---|
-| 🖥️ **Web application** | captures the case, context and human decision |
-| 🔌 **API** | connects the interface, engine and persisted state |
-| 🧠 **Investigation engine** | performs triage and selects relevant investigation paths |
-| 💾 **History** | keeps area, result, decision and follow-up linked to the account |
+| Interface web | Recebe conteúdo, apresenta limites e permite decisão humana. |
+| API | Valida a entrada/sessão e conecta interface, motor e estado salvo. |
+| Método profissional | Usa QA, SEC, NET/NOC, INF, SRE ou SUP, com investigação relevante ao caso. |
+| Contrato de evidências | Mantém origem, suporte, inferências, hipótese, lacunas e justificativa. |
+| Persistência | Guarda área do caso, entrada, resultado e decisão associados à conta. |
 
----
+Nome opcional e área são preferências da conta verificada. Alterar preferência orienta novas análises e não reescreve casos antigos. O responsável pela decisão é registrado separadamente; nome de exibição não comprova identidade.
 
-## 📥 Supported input model
+## Entrada e resposta
 
-RAVEN can receive different forms of operational evidence and context:
+Texto e ficheiros textuais suportados (TXT/LOG/JSON/CSV) seguem o mesmo motor. O fluxo limita texto combinado a8192caracteres e ficheiro a256KB. PNG/JPG válidos são anexos de revisão humana; conteúdo visual não é interpretado automaticamente.
 
-- ✍️ free text;
-- 🎫 ticket or incident description;
-- 📜 logs;
-- 📎 files;
-- 🖼️ images;
-- 🧩 contextual metadata already available to the application.
+Fatos relatados, inferências e hipótese não são equivalentes. A análise deve apontar origem, evidência faltante e como confirmar. Confiança no contexto é distinta da certeza da causa. Sem impacto sustentado, gravidade/prioridade permanecem a determinar.
 
-The public interface should only surface evidence that is actually supported by the submitted or validated input.
+A interface mantém uma leitura curta; suporte detalhado fica expansível. Ações indicam objetivo, ferramenta e evidência a obter. **Aprovar/Ajustar/Rejeitar** registra decisão; não executa ferramentas, não fecha chamados externos e não comprova resolução.
 
----
+## Segurança e limites
 
-## 🧭 Professional routing
+Sessão autenticada, consentimento, isolamento de conta e mascaramento conhecido são parte do fluxo. Entradas são dados não confiáveis, não comandos de sistema. O usuário deve revisar segredos/dados pessoais antes do envio; mascaramento não elimina essa responsabilidade.
 
-The selected professional area is not only a UI label.
+Histórico permite compreender e reabrir um caso. Não anunciar aprendizagem automática ou aproveitamento dos dados após exclusão. Não há capacidade simultânea comprovada por teste de carga; manter piloto pequeno acompanhado.
 
-It becomes part of the analysis context:
+## Fronteira pública
 
-```mermaid
-flowchart LR
-    QA[QA] --> T[Triage]
-    SEC[SEC] --> T
-    NET[NET/NOC] --> T
-    INF[INF] --> T
-    SRE[SRE] --> T
-    SUP[SUP] --> T
-    T --> R[Relevant investigation only]
-```
+É compartilhável: propósito, fluxo, entradas/saídas, responsabilidades de alto nível, limites e decisão humana.
 
-If signals suggest another specialty, RAVEN may indicate that relationship while keeping the original area as the primary context.
-
----
-
-## 🔎 Triage before investigation
-
-RAVEN is designed to avoid running every investigation path for every case.
-
-```mermaid
-flowchart TD
-    I[Incoming case] --> T[Understand the problem]
-    T --> Q{What is actually relevant?}
-    Q -->|Relevant| H1[Investigation path A]
-    Q -->|Relevant| H2[Investigation path B]
-    Q -->|Not relevant| X[Skip]
-```
-
-This keeps the investigation smaller, more coherent and easier to review.
-
----
-
-## 📤 Structured output
-
-A public-facing result can include:
-
-| Output | Meaning |
-|---|---|
-| 📎 **Evidence** | facts supported by the submitted input |
-| 💭 **Hypothesis** | current working explanation |
-| 🚨 **Severity** | potential impact |
-| 📊 **Confidence** | confidence in the current classification |
-| 🎯 **Priority** | urgency / order of attention |
-| 🛠️ **Recommended action** | suggested next step |
-| 🔧 **Tools** | tools that may help the professional |
-| 👤 **Decision** | approve, adjust or reject |
-
----
-
-## 👤 Human-in-the-loop
-
-RAVEN does not silently execute the professional decision.
-
-```mermaid
-flowchart LR
-    R[RAVEN recommendation] --> H{Professional}
-    H --> A[Approve]
-    H --> B[Adjust]
-    H --> C[Reject]
-    A --> L[Decision recorded]
-    B --> L
-    C --> L
-```
-
-**RAVEN recommends. The professional decides.**
-
----
-
-## 💾 Persistence model — high level
-
-The system preserves enough context to reopen a case without rebuilding the investigation from scratch.
-
-Persisted information can include:
-
-- professional area used for the case;
-- original input;
-- structured result;
-- human decision;
-- history / follow-up state.
-
-Changing the user’s current professional area should not rewrite the historical context of earlier cases.
-
----
-
-## 🔐 Public technical boundary
-
-This document intentionally stops at the architectural boundary.
-
-### Public
-
-- product flow;
-- high-level architecture;
-- input / output model;
-- routing concept;
-- human-decision model;
-- persistence principles.
-
-### Private
-
-- proprietary heuristics;
-- internal weights;
-- scoring logic;
-- detailed decision rules;
-- private investigation methodology;
-- internal engine implementation;
-- sensitive infrastructure details.
-
----
-
-## 🧠 Design principles
-
-> **Complexity behind → simplicity in front**
-
-- triage before unnecessary investigation;
-- evidence before conclusion;
-- no silent context switching;
-- no artificial evidence;
-- technical details on demand;
-- human decision remains final.
-
----
-
-## 🦊 Relationship to FOXHUMAN
-
-RAVEN is a **FOXHUMAN** product.
-
-The public repository documents the product and its safe technical model.  
-The private core remains the execution and intellectual-property layer.
+Permanece privado: código ativo, heurísticas, pesos, regras detalhadas, credenciais, dados de contas, provas de conta real e configuração sensível. Licenciamento do código não é alterado por este documento.

@@ -1,154 +1,47 @@
 # RAVEN by FOXHUMAN
 
-> **Human-centered decision support for technical investigation.**  
-> RAVEN helps professionals turn scattered signals into a structured investigation, a clear recommendation and a recorded human decision.
+**Evidências para decidir com clareza.**
 
----
+O RAVEN ajuda profissionais a transformar um ticket, log ou relato técnico em uma leitura rastreável, reconhecer o que falta confirmar e escolher o próximo passo. O sistema recomenda; o profissional decide.
 
-## 🧭 What RAVEN does
+## Da entrada à decisão
 
-Technical work often starts with incomplete information:
+**E-mail e OTP → perfil/área → conteúdo → triagem e método profissional → análise → decisão humana → Histórico.**
 
-- a failed test;
-- an unexpected deployment effect;
-- suspicious behavior;
-- latency or packet loss;
-- a configuration change;
-- a user report without enough context.
+Nome de exibição é opcional; sem nome, a conta mostra o e-mail. A área fica salva e pode ser alterada nas Configurações. Cada caso mantém a área utilizada quando foi analisado.
 
-RAVEN organizes that uncertainty into a professional investigation flow.
-
-**Input → Professional area → Triage → Relevant investigation → Result → Human decision → History**
-
-The system recommends. **The professional decides.**
-
----
-
-## 👩‍💻 Choose the professional context
-
-RAVEN starts from the area selected by the user. That context guides the investigation without hiding or silently changing the main area.
-
-| Area | Focus |
+| Área | Contexto |
 |---|---|
-| 🧪 **QA** | reproduction, regression, environment, test evidence |
-| 🔐 **SEC** | exposure, identity, suspicious behavior, impact |
-| 🌐 **NET/NOC** | connectivity, DNS, latency, packet loss, routing |
-| 🧱 **INF** | resources, configuration, cloud, dependencies |
-| 📈 **SRE** | availability, deploys, observability, reliability |
-| 🎧 **SUP** | user impact, reproduction, context, escalation |
+| QA | Qualidade e Testes |
+| SEC | Cibersegurança |
+| NET/NOC | Redes |
+| INF | Infraestrutura |
+| SRE | Confiabilidade |
+| SUP | Suporte |
 
-If signals from another specialty appear, RAVEN can indicate the relationship **without silently replacing the original context**.
+A área orienta o método. Não determina automaticamente gravidade, causa ou prioridade. Sinais de outra especialidade podem apoiar a análise sem trocar a área principal silenciosamente.
 
----
+## O que aparece na tela
 
-## 🔎 From a real problem to a decision
+Uma leitura curta dos sinais, lacunas, gravidade/confiança e ações com ferramentas. Evidências, origem e justificativa ficam em um único bloco expansível. **Aprovar, Ajustar e Rejeitar** registram a decisão humana; o Histórico permite reabrir o caso.
 
-### Example
+Texto, TXT, LOG, JSON e CSV seguem o fluxo suportado. PNG/JPG podem ser anexados para revisão humana; não há interpretação automática das imagens. Não anunciar formatos não suportados.
 
-**Input**  
-> A regression test started failing after an update.
+## Compromissos e limites do piloto
 
-**RAVEN organizes the analysis into:**
+- Evidência vem da entrada; desconhecidos não são preenchidos por plausibilidade.
+- Confiança no contexto não comprova causa raiz. Gravidade/impacto podem ficar a determinar.
+- Ferramentas são recomendações; ações externas não são executadas automaticamente.
+- Histórico não implica treino automático com dados de clientes.
+- Piloto pequeno acompanhado; capacidade simultânea ainda não foi medida por teste de carga.
 
-- 📎 evidence supported by the submitted input;
-- 💭 working hypothesis;
-- 🚨 severity;
-- 🎯 priority;
-- 📊 confidence;
-- 🛠️ recommended action;
-- 🔧 suggested tools;
-- 👤 professional decision.
+## Documentação oficial
 
-The professional can then:
+- [Visão técnica de alto nível](TECHNICAL_OVERVIEW.md)
+- [FOXHUMAN — hub público](https://github.com/michelle-braz/foxhuman)
+- [Apresentação pública do RAVEN](https://github.com/michelle-braz/foxhuman/blob/main/CAMADA_RAVEN.md)
+- [Entrar no piloto](https://raven-pr28-validation-production.up.railway.app/try)
 
-**Approve · Adjust · Reject**
+Este repositório contém documentação de produto, não o núcleo ativo. **Permanece privado: seu histórico Git ainda contém código antigo.** A documentação pública segura está no hub FOXHUMAN. Não tornar público o histórico para divulgar somente estes dois documentos.
 
-The case remains available in history with its original context and decision trail.
-
----
-
-## ✨ What the professional sees
-
-RAVEN keeps the interface simple while the investigation logic stays behind the scenes.
-
-**The result prioritizes:**
-
-1. Evidence
-2. Hypothesis
-3. Severity / confidence / priority
-4. Recommended action
-5. Tools
-6. Human decision
-7. Technical details on demand
-8. Original input
-9. History and follow-up
-
-> RAVEN does not invent evidence to fill the interface.  
-> When evidence is insufficient, that limitation should be explicit.
-
----
-
-## 🧩 Typical use cases
-
-### 🧪 QA
-“Something that passed before is failing after the latest update.”
-
-### 🔐 SEC
-“There is suspicious account behavior and I need to structure the investigation.”
-
-### 🌐 NET/NOC
-“Latency and packet loss increased and I need to isolate the likely path.”
-
-### 🧱 INF
-“A service started failing after a configuration or infrastructure change.”
-
-### 📈 SRE
-“Availability degraded after a deployment and I need to assess impact and next action.”
-
-### 🎧 SUP
-“A user reports a problem that is difficult to reproduce or route correctly.”
-
----
-
-## 🏗️ Technical view — high level
-
-RAVEN is designed as a **web application + API + investigation engine**, with account-linked history and human decision at the end of the flow.
-
-It accepts inputs such as text, tickets, logs, files and images, then produces a structured decision-support result.
-
-➡️ **[Open the visual technical overview](TECHNICAL_OVERVIEW.md)**
-
----
-
-## 🛡️ Public by design, internal by protection
-
-This repository explains **what RAVEN does and how it is used**.
-
-It does **not** expose:
-
-- proprietary heuristics;
-- internal weights;
-- private decision rules;
-- internal investigation methodology;
-- private engine implementation.
-
-That separation is intentional.
-
----
-
-## 🧠 Principles
-
-- **Complexity behind → simplicity in front**
-- **Evidence before conclusion**
-- **Triage before unnecessary investigation**
-- **No silent context switching**
-- **No artificial evidence**
-- **Human decision remains final**
-
----
-
-## 🦊 FOXHUMAN
-
-**RAVEN is a FOXHUMAN product.**
-
-FOXHUMAN builds human-centered operational systems that connect software, data, automation, AI and real operational work.
+A implementação e as evidências privadas são mantidas no core privado. Heurísticas, pesos, regras internas, segredos e dados de participantes não fazem parte da apresentação pública.
