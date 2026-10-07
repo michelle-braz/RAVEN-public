@@ -33,7 +33,7 @@ Texto, TXT, LOG, JSON e CSV seguem o fluxo suportado. PNG/JPG podem ser anexados
 - Confiança no contexto não comprova causa raiz. Gravidade/impacto podem ficar a determinar.
 - Ferramentas são recomendações; ações externas não são executadas automaticamente.
 - Histórico não implica treino automático com dados de clientes.
-- Piloto pequeno acompanhado; capacidade simultânea ainda não foi medida por teste de carga.
+- Piloto pequeno acompanhado; teste local passou até 20 contas simultâneas; a capacidade da análise autenticada em produção ainda não foi certificada.
 
 ## Documentação oficial
 
